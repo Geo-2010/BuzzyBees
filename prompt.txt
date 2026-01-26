@@ -1,0 +1,20 @@
+Create an app that lists events near a user and allows user to schedule events.
+
+User login
+* Email
+* Password
+
+Main view
+* List of events
+* When you click on event it shows me descriptions and details
+* Events are title, type, location, date, time, description
+* Event types are sports, party, study group, meeting
+* Add event button 
+
+Filter event view
+* Filter events button by type, location, date, time, keyword
+
+Add event view
+* Add an event
+
+
