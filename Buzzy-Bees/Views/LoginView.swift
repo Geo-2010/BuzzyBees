@@ -46,6 +46,7 @@ struct LoginView: View {
     @State private var displayName = ""
     @State private var showError = false
     @State private var waveOffset: CGFloat = 0
+    @State private var isExistingUser = false
 
     var body: some View {
         NavigationStack {
@@ -158,29 +159,35 @@ struct LoginView: View {
 
                     // Input fields with more curves
                     VStack(spacing: 18) {
-                        TextField("Your Name", text: $displayName)
-                            .textFieldStyle(.plain)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 16)
-                            .background(
-                                Capsule()
-                                    .fill(AppTheme.darkGray.opacity(0.8))
-                            )
-                            .foregroundStyle(.white)
-                            .overlay(
-                                Capsule()
-                                    .stroke(
-                                        LinearGradient(
-                                            colors: [AppTheme.gold.opacity(0.6), AppTheme.gold.opacity(0.2)],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        ),
-                                        lineWidth: 1
-                                    )
-                            )
-                            .textContentType(.name)
+                        // Only show name field for new users (not in directory yet)
+                        if !isExistingUser {
+                            TextField("Your Name", text: $displayName)
+                                .textFieldStyle(.plain)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 16)
+                                .background(
+                                    Capsule()
+                                        .fill(AppTheme.darkGray.opacity(0.8))
+                                )
+                                .foregroundStyle(.white)
+                                .overlay(
+                                    Capsule()
+                                        .stroke(
+                                            LinearGradient(
+                                                colors: [AppTheme.gold.opacity(0.6), AppTheme.gold.opacity(0.2)],
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            ),
+                                            lineWidth: 1
+                                        )
+                                )
+                                .textContentType(.name)
+                        }
 
                         TextField("Email", text: $email)
+                            .onChange(of: email) { _, newValue in
+                                isExistingUser = authManager.isExistingUser(email: newValue)
+                            }
                             .textFieldStyle(.plain)
                             .padding(.horizontal, 20)
                             .padding(.vertical, 16)
@@ -251,7 +258,7 @@ struct LoginView: View {
                     .padding(.horizontal, 32)
 
                     if showError {
-                        Text("Please enter name, email and password")
+                        Text(isExistingUser ? "Please enter email and password" : "Please enter name, email and password")
                             .foregroundStyle(.red)
                             .font(.caption)
                             .padding(.horizontal, 20)

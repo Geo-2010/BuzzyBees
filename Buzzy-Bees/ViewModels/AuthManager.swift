@@ -22,17 +22,38 @@ class AuthManager {
         loadUser()
     }
 
+    /// Check if an email already exists in the user directory
+    func isExistingUser(email: String) -> Bool {
+        return userDirectory[email] != nil
+    }
+
+    /// Get the stored display name for an email, if it exists
+    func storedDisplayName(for email: String) -> String? {
+        return userDirectory[email]
+    }
+
     func login(email: String, password: String, displayName: String) -> Bool {
-        guard !email.isEmpty, !password.isEmpty, !displayName.isEmpty else {
+        guard !email.isEmpty, !password.isEmpty else {
             return false
         }
 
-        let user = User(email: email, password: password, displayName: displayName)
+        // For existing users, use their stored name; for new users, require a name
+        let finalDisplayName: String
+        if let existingName = userDirectory[email] {
+            finalDisplayName = existingName
+        } else {
+            guard !displayName.isEmpty else {
+                return false
+            }
+            finalDisplayName = displayName
+        }
+
+        let user = User(email: email, password: password, displayName: finalDisplayName)
         currentUser = user
         saveUser()
 
-        // Add to user directory
-        userDirectory[email] = displayName
+        // Add to user directory (updates if already exists)
+        userDirectory[email] = finalDisplayName
         saveUserDirectory()
 
         return true

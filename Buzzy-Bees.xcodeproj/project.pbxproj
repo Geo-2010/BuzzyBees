@@ -6,17 +6,46 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXFileReference section */
-		5F0D99182F1E769D00F98A7D /* Rural-Activities.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Rural-Activities.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-/* End PBXFileReference section */
+/* Begin PBXBuildFile section */
+		5FA393F02F27CBDB00DE1001 /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA393F02F27CBDB00DE107C /* Event.swift */; };
+		5FA393F12F27CBDB00DE1001 /* EventType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA393F12F27CBDB00DE107C /* EventType.swift */; };
+		5FA393F22F27CBDB00DE1001 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA393F22F27CBDB00DE107C /* User.swift */; };
+		5FA393F42F27CBDB00DE1001 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA393F42F27CBDB00DE107C /* APIService.swift */; };
+		5FA393F62F27CBDB00DE1001 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA393F62F27CBDB00DE107C /* AuthManager.swift */; };
+		5FA393F72F27CBDB00DE1001 /* EventManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA393F72F27CBDB00DE107C /* EventManager.swift */; };
+		5FA393F92F27CBDB00DE1001 /* AddEventView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA393F92F27CBDB00DE107C /* AddEventView.swift */; };
+		5FA393FA2F27CBDB00DE1001 /* EventDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA393FA2F27CBDB00DE107C /* EventDetailView.swift */; };
+		5FA393FB2F27CBDB00DE1001 /* EventRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA393FB2F27CBDB00DE107C /* EventRowView.swift */; };
+		5FA393FC2F27CBDB00DE1001 /* FilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA393FC2F27CBDB00DE107C /* FilterView.swift */; };
+		5FA393FD2F27CBDB00DE1001 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA393FD2F27CBDB00DE107C /* LoginView.swift */; };
+		5FA393FE2F27CBDB00DE1001 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA393FE2F27CBDB00DE107C /* MainView.swift */; };
+		5FA394002F27CBDB00DE1001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5FA394002F27CBDB00DE107C /* Assets.xcassets */; };
+		5FA394012F27CBDB00DE1001 /* ContentFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA394012F27CBDB00DE107C /* ContentFilter.swift */; };
+		5FA394022F27CBDB00DE1001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA394022F27CBDB00DE107C /* ContentView.swift */; };
+		5FA394032F27CBDB00DE1001 /* Buzzy_BeesApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA394032F27CBDB00DE107C /* Buzzy_BeesApp.swift */; };
+		5FA394042F27CBDB00DE1001 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA394042F27CBDB00DE107C /* Theme.swift */; };
+/* End PBXBuildFile section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		5F0D991A2F1E769D00F98A7D /* Rural-Activities */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Rural-Activities";
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
+/* Begin PBXFileReference section */
+		5F0D99182F1E769D00F98A7D /* Buzzy-Bees.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Buzzy-Bees.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5FA393F02F27CBDB00DE107C /* Event.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
+		5FA393F12F27CBDB00DE107C /* EventType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventType.swift; sourceTree = "<group>"; };
+		5FA393F22F27CBDB00DE107C /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		5FA393F42F27CBDB00DE107C /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
+		5FA393F62F27CBDB00DE107C /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		5FA393F72F27CBDB00DE107C /* EventManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventManager.swift; sourceTree = "<group>"; };
+		5FA393F92F27CBDB00DE107C /* AddEventView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEventView.swift; sourceTree = "<group>"; };
+		5FA393FA2F27CBDB00DE107C /* EventDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventDetailView.swift; sourceTree = "<group>"; };
+		5FA393FB2F27CBDB00DE107C /* EventRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventRowView.swift; sourceTree = "<group>"; };
+		5FA393FC2F27CBDB00DE107C /* FilterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterView.swift; sourceTree = "<group>"; };
+		5FA393FD2F27CBDB00DE107C /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		5FA393FE2F27CBDB00DE107C /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		5FA394002F27CBDB00DE107C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5FA394012F27CBDB00DE107C /* ContentFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentFilter.swift; sourceTree = "<group>"; };
+		5FA394022F27CBDB00DE107C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		5FA394032F27CBDB00DE107C /* Buzzy_BeesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Buzzy_BeesApp.swift; sourceTree = "<group>"; };
+		5FA394042F27CBDB00DE107C /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		5F0D99152F1E769D00F98A7D /* Frameworks */ = {
@@ -32,25 +61,81 @@
 		5F0D990F2F1E769D00F98A7D = {
 			isa = PBXGroup;
 			children = (
-				5F0D991A2F1E769D00F98A7D /* Rural-Activities */,
 				5F0D99192F1E769D00F98A7D /* Products */,
+				5FA394052F27CBDB00DE107C /* Buzzy-Bees */,
 			);
 			sourceTree = "<group>";
 		};
 		5F0D99192F1E769D00F98A7D /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				5F0D99182F1E769D00F98A7D /* Rural-Activities.app */,
+				5F0D99182F1E769D00F98A7D /* Buzzy-Bees.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		5FA393F32F27CBDB00DE107C /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				5FA393F02F27CBDB00DE107C /* Event.swift */,
+				5FA393F12F27CBDB00DE107C /* EventType.swift */,
+				5FA393F22F27CBDB00DE107C /* User.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		5FA393F52F27CBDB00DE107C /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				5FA393F42F27CBDB00DE107C /* APIService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		5FA393F82F27CBDB00DE107C /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				5FA393F62F27CBDB00DE107C /* AuthManager.swift */,
+				5FA393F72F27CBDB00DE107C /* EventManager.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		5FA393FF2F27CBDB00DE107C /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				5FA393F92F27CBDB00DE107C /* AddEventView.swift */,
+				5FA393FA2F27CBDB00DE107C /* EventDetailView.swift */,
+				5FA393FB2F27CBDB00DE107C /* EventRowView.swift */,
+				5FA393FC2F27CBDB00DE107C /* FilterView.swift */,
+				5FA393FD2F27CBDB00DE107C /* LoginView.swift */,
+				5FA393FE2F27CBDB00DE107C /* MainView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		5FA394052F27CBDB00DE107C /* Buzzy-Bees */ = {
+			isa = PBXGroup;
+			children = (
+				5FA393F32F27CBDB00DE107C /* Models */,
+				5FA393F52F27CBDB00DE107C /* Services */,
+				5FA393F82F27CBDB00DE107C /* ViewModels */,
+				5FA393FF2F27CBDB00DE107C /* Views */,
+				5FA394002F27CBDB00DE107C /* Assets.xcassets */,
+				5FA394012F27CBDB00DE107C /* ContentFilter.swift */,
+				5FA394022F27CBDB00DE107C /* ContentView.swift */,
+				5FA394032F27CBDB00DE107C /* Buzzy_BeesApp.swift */,
+				5FA394042F27CBDB00DE107C /* Theme.swift */,
+			);
+			path = "Buzzy-Bees";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		5F0D99172F1E769D00F98A7D /* Rural-Activities */ = {
+		5F0D99172F1E769D00F98A7D /* Buzzy-Bees */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5F0D99232F1E769F00F98A7D /* Build configuration list for PBXNativeTarget "Rural-Activities" */;
+			buildConfigurationList = 5F0D99232F1E769F00F98A7D /* Build configuration list for PBXNativeTarget "Buzzy-Bees" */;
 			buildPhases = (
 				5F0D99142F1E769D00F98A7D /* Sources */,
 				5F0D99152F1E769D00F98A7D /* Frameworks */,
@@ -60,14 +145,11 @@
 			);
 			dependencies = (
 			);
-			fileSystemSynchronizedGroups = (
-				5F0D991A2F1E769D00F98A7D /* Rural-Activities */,
-			);
-			name = "Rural-Activities";
+			name = "Buzzy-Bees";
 			packageProductDependencies = (
 			);
-			productName = "Rural-Activities";
-			productReference = 5F0D99182F1E769D00F98A7D /* Rural-Activities.app */;
+			productName = "Buzzy-Bees";
+			productReference = 5F0D99182F1E769D00F98A7D /* Buzzy-Bees.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -85,7 +167,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 5F0D99132F1E769D00F98A7D /* Build configuration list for PBXProject "Rural-Activities" */;
+			buildConfigurationList = 5F0D99132F1E769D00F98A7D /* Build configuration list for PBXProject "Buzzy-Bees" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -99,7 +181,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				5F0D99172F1E769D00F98A7D /* Rural-Activities */,
+				5F0D99172F1E769D00F98A7D /* Buzzy-Bees */,
 			);
 		};
 /* End PBXProject section */
@@ -109,6 +191,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5FA394002F27CBDB00DE1001 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,6 +202,22 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5FA393F02F27CBDB00DE1001 /* Event.swift in Sources */,
+				5FA393F12F27CBDB00DE1001 /* EventType.swift in Sources */,
+				5FA393F22F27CBDB00DE1001 /* User.swift in Sources */,
+				5FA393F42F27CBDB00DE1001 /* APIService.swift in Sources */,
+				5FA393F62F27CBDB00DE1001 /* AuthManager.swift in Sources */,
+				5FA393F72F27CBDB00DE1001 /* EventManager.swift in Sources */,
+				5FA393F92F27CBDB00DE1001 /* AddEventView.swift in Sources */,
+				5FA393FA2F27CBDB00DE1001 /* EventDetailView.swift in Sources */,
+				5FA393FB2F27CBDB00DE1001 /* EventRowView.swift in Sources */,
+				5FA393FC2F27CBDB00DE1001 /* FilterView.swift in Sources */,
+				5FA393FD2F27CBDB00DE1001 /* LoginView.swift in Sources */,
+				5FA393FE2F27CBDB00DE1001 /* MainView.swift in Sources */,
+				5FA394012F27CBDB00DE1001 /* ContentFilter.swift in Sources */,
+				5FA394022F27CBDB00DE1001 /* ContentView.swift in Sources */,
+				5FA394032F27CBDB00DE1001 /* Buzzy_BeesApp.swift in Sources */,
+				5FA394042F27CBDB00DE1001 /* Theme.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -254,13 +353,13 @@
 				DEVELOPMENT_TEAM = QMW569W7GL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = "Info.plist";
+				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.geoc.Rural-Activities";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.geoc.Buzzy-Bees";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -282,13 +381,13 @@
 				DEVELOPMENT_TEAM = QMW569W7GL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = "Info.plist";
+				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.geoc.Rural-Activities";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.geoc.Buzzy-Bees";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -303,7 +402,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		5F0D99132F1E769D00F98A7D /* Build configuration list for PBXProject "Rural-Activities" */ = {
+		5F0D99132F1E769D00F98A7D /* Build configuration list for PBXProject "Buzzy-Bees" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5F0D99212F1E769F00F98A7D /* Debug */,
@@ -312,7 +411,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5F0D99232F1E769F00F98A7D /* Build configuration list for PBXNativeTarget "Rural-Activities" */ = {
+		5F0D99232F1E769F00F98A7D /* Build configuration list for PBXNativeTarget "Buzzy-Bees" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5F0D99242F1E769F00F98A7D /* Debug */,

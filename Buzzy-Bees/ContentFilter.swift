@@ -21,7 +21,7 @@ struct ContentFilter {
         "cocaine", "heroin", "meth",
         // Common leetspeak variants
         "f*ck", "sh*t", "b*tch", "f**k", "s**t",
-        "fuk", "fck", "sht", "btch", "azz"
+        "fuk", "fck", "btch", "azz"
     ]
 
     // Additional patterns to check (for creative spelling)

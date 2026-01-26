@@ -1,6 +1,6 @@
 //
-//  Rural_ActivitiesApp.swift
-//  Rural-Activities
+//  Buzzy_BeesApp.swift
+//  Buzzy-Bees
 //
 //  Created by Geo Culurciello on 1/19/26.
 //
@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct Rural_ActivitiesApp: App {
+struct Buzzy_BeesApp: App {
     @State private var authManager = AuthManager()
     @State private var eventManager = EventManager()
 
