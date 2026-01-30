@@ -5,6 +5,8 @@ A lightweight REST API for managing community events.
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from dateutil import parser as date_parser
@@ -13,6 +15,17 @@ import os
 
 app = Flask(__name__)
 CORS(app)
+
+# Request size limit (50 KB)
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024
+
+# Rate limiter (keyed by client IP)
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per minute"],
+    storage_uri="memory://",
+)
 
 # Configure SQLite database
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -87,6 +100,18 @@ with app.app_context():
     db.create_all()
 
 
+# Error handlers
+
+@app.errorhandler(413)
+def request_entity_too_large(e):
+    return jsonify({'error': 'Request payload exceeds 50 KB limit'}), 413
+
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return jsonify({'error': 'Rate limit exceeded', 'message': str(e.description)}), 429
+
+
 # API Routes
 
 @app.route('/api/health', methods=['GET'])
@@ -130,13 +155,14 @@ def get_events():
 @app.route('/api/events/<event_id>', methods=['GET'])
 def get_event(event_id):
     """Get a single event by ID."""
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
     if not event:
         return jsonify({'error': 'Event not found'}), 404
     return jsonify(event.to_dict())
 
 
 @app.route('/api/events', methods=['POST'])
+@limiter.limit("20 per minute")
 def create_event():
     """Create a new event."""
     print("\n" + "="*50)
@@ -157,7 +183,7 @@ def create_event():
         return jsonify({'error': f'Missing required fields: {", ".join(missing)}'}), 400
 
     # Validate event type
-    valid_types = ['Sports', 'Party', 'Study Group', 'Meeting', 'Outdoor']
+    valid_types = ['Sports', 'Party', 'Study Group', 'Meeting']
     if data['type'] not in valid_types:
         print(f"ERROR: Invalid event type: {data['type']}")
         return jsonify({'error': f'Invalid event type. Must be one of: {", ".join(valid_types)}'}), 400
@@ -180,9 +206,10 @@ def create_event():
 
 
 @app.route('/api/events/<event_id>', methods=['PUT'])
+@limiter.limit("20 per minute")
 def update_event(event_id):
     """Update an existing event."""
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
     if not event:
         return jsonify({'error': 'Event not found'}), 404
 
@@ -222,9 +249,10 @@ def update_event(event_id):
 
 
 @app.route('/api/events/<event_id>', methods=['DELETE'])
+@limiter.limit("20 per minute")
 def delete_event(event_id):
     """Delete an event."""
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
     if not event:
         return jsonify({'error': 'Event not found'}), 404
 
@@ -238,9 +266,10 @@ def delete_event(event_id):
 
 
 @app.route('/api/events/<event_id>/rsvp', methods=['POST'])
+@limiter.limit("30 per minute")
 def toggle_rsvp(event_id):
     """Toggle RSVP for a user on an event."""
-    event = Event.query.get(event_id)
+    event = db.session.get(Event, event_id)
     if not event:
         return jsonify({'error': 'Event not found'}), 404
 

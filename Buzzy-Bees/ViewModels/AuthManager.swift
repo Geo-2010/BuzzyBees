@@ -71,7 +71,7 @@ class AuthManager {
             return displayName
         }
         // If not in directory, show masked email
-        if let atIndex = email.firstIndex(of: "@") {
+        if email.contains("@") {
             let prefix = email.prefix(2)
             return "\(prefix)***"
         }

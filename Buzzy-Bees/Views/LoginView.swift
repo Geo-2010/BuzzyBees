@@ -159,34 +159,12 @@ struct LoginView: View {
 
                     // Input fields with more curves
                     VStack(spacing: 18) {
-                        // Only show name field for new users (not in directory yet)
-                        if !isExistingUser {
-                            TextField("Your Name", text: $displayName)
-                                .textFieldStyle(.plain)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 16)
-                                .background(
-                                    Capsule()
-                                        .fill(AppTheme.darkGray.opacity(0.8))
-                                )
-                                .foregroundStyle(.white)
-                                .overlay(
-                                    Capsule()
-                                        .stroke(
-                                            LinearGradient(
-                                                colors: [AppTheme.gold.opacity(0.6), AppTheme.gold.opacity(0.2)],
-                                                startPoint: .leading,
-                                                endPoint: .trailing
-                                            ),
-                                            lineWidth: 1
-                                        )
-                                )
-                                .textContentType(.name)
-                        }
-
+                        // Email field first - so we can check if user exists
                         TextField("Email", text: $email)
                             .onChange(of: email) { _, newValue in
-                                isExistingUser = authManager.isExistingUser(email: newValue)
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    isExistingUser = authManager.isExistingUser(email: newValue)
+                                }
                             }
                             .textFieldStyle(.plain)
                             .padding(.horizontal, 20)
@@ -210,6 +188,31 @@ struct LoginView: View {
                             .textContentType(.emailAddress)
                             .autocapitalization(.none)
                             .keyboardType(.emailAddress)
+
+                        // Only show name field for new users (email entered but not in directory)
+                        if !email.isEmpty && !isExistingUser {
+                            TextField("Your Name (required for new users)", text: $displayName)
+                                .textFieldStyle(.plain)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 16)
+                                .background(
+                                    Capsule()
+                                        .fill(AppTheme.darkGray.opacity(0.8))
+                                )
+                                .foregroundStyle(.white)
+                                .overlay(
+                                    Capsule()
+                                        .stroke(
+                                            LinearGradient(
+                                                colors: [AppTheme.gold.opacity(0.6), AppTheme.gold.opacity(0.2)],
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            ),
+                                            lineWidth: 1
+                                        )
+                                )
+                                .textContentType(.name)
+                        }
 
                         SecureField("Password", text: $password)
                             .textFieldStyle(.plain)

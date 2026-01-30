@@ -106,8 +106,9 @@ class APIService {
     static let shared = APIService()
 
     // Base URL - change this if running on a different server
-    private let baseURL = "http://192.168.6.249:5001"
-
+//    private let baseURL = "http://192.168.6.249:5001"
+    private let baseURL = "http://195.252.199.12:5001"
+    
     private let session: URLSession
     private let decoder: JSONDecoder
     private let encoder: JSONEncoder
