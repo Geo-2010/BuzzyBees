@@ -31,6 +31,31 @@ npm run dev
 npm start
 ```
 
+### Background Process (with PM2):
+
+PM2 keeps your app running in the background, auto-restarts on crashes, and manages logs.
+
+**First time setup:**
+```bash
+npm install
+npm run pm2:start
+```
+
+**Common PM2 commands:**
+```bash
+npm run pm2:status    # Check if app is running
+npm run pm2:logs      # View live logs
+npm run pm2:restart   # Restart the app
+npm run pm2:stop      # Stop the app
+npm run pm2:delete    # Remove from PM2
+```
+
+**Start PM2 on system boot (optional):**
+```bash
+pm2 startup
+pm2 save
+```
+
 The server will start on `http://localhost:5001`
 
 ## API Endpoints

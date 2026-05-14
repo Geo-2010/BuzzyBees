@@ -1,17 +1,15 @@
   BuzzyBees                                                                     
                                                                                 
-  A community event discovery app for iOS, with a Python/Flask REST API backend.
+  A community event discovery app for iOS, with a Node.js/Express REST API backend.
                                                                                 
   Overview                                                  
 
   BuzzyBees lets users create, browse, and RSVP to local community events. The
-  iOS app connects to a self-hosted Flask API that handles authentication and
-  event storage.
+  iOS app connects to a self-hosted Node.js API that handles event storage.
 
   Features                                                                      
    
-  - Authentication — Register and log in with email/password; JWT tokens stored 
-  in Keychain                                               
+  - User Identification — Events are associated with user IDs                                               
   - Event Feed — Browse upcoming events sorted by date, with infinite scroll
   pagination
   - Event Categories — Sports, Party, Study Group, Meeting, Outdoor
@@ -37,48 +35,54 @@
   │   ├── Services/             # APIService, KeychainService, LocationManager, 
   NotificationManager                                       
   │   └── Theme.swift           # AppTheme colors and design tokens
-  └── backend/                  # Flask REST API                                
-      ├── app.py                # All routes and models
-      └── requirements.txt                                                      
+  └── backend/                  # Node.js/Express REST API
+      ├── server.js             # Main server file with routes and models
+      ├── package.json          # Node.js dependencies
+      ├── app.py                # Legacy Python/Flask version (deprecated)
+      └── requirements.txt      # Legacy Python dependencies (deprecated)                                                      
                                                             
   Backend Setup
 
-  Requirements: Python 3.9+
+  Requirements: Node.js 16+ and npm
 
   cd backend
-  python -m venv venv
-  source venv/bin/activate                                                      
-  pip install -r requirements.txt
-                                                                                
-  Run the server:                                           
+  npm install
 
-  python app.py
+  Run the server:
 
-  The API starts on port 5001. A SQLite database (events.db) is created         
-  automatically on first run.
-                                                                                
-  Environment variables:                                    
+  npm start              # Production mode
+  npm run dev            # Development mode with auto-restart
+  npm run pm2:start      # Background process with PM2 (recommended for production)
 
-  - JWT_SECRET_KEY — JWT signing secret. If omitted, a secret is auto-generated
-  and saved to .jwt_secret.
+  PM2 Management (background process):
+  npm run pm2:status     # Check app status
+  npm run pm2:logs       # View live logs
+  npm run pm2:restart    # Restart the app
+  npm run pm2:stop       # Stop the app
 
-  ▎ Note: The server currently runs over plain HTTP. Use HTTPS with a reverse   
+  The API starts on port 5001. A SQLite database (events.db) is created
+  automatically on first run. PM2 provides auto-restart on crashes and log
+  management.
+
+  ▎ Note: The server currently runs over plain HTTP. Use HTTPS with a reverse
   proxy (nginx, Caddy) and a valid TLS certificate in production.
+
+  ▎ Legacy Python Backend: The previous Python/Flask version (app.py) is still
+  available but deprecated. See backend/README.md for details.
                                                                                 
   API Endpoints                                             
 
-  - GET /api/health — Health check (no auth)                                    
-  - POST /api/auth/register — Register a new account (no auth)
-  - POST /api/auth/login — Log in, receive JWT (no auth)                        
-  - GET /api/events — List upcoming events, paginated (no auth)
-  - GET /api/events/<id> — Get a single event (no auth)                         
-  - POST /api/events — Create an event (auth required)
-  - PUT /api/events/<id> — Update an event, creator only (auth required)        
-  - DELETE /api/events/<id> — Delete an event, creator only (auth required)     
-  - POST /api/events/<id>/rsvp — Toggle RSVP attendance (auth required)
-                                                                                
-  Rate limits: 200 req/min default; 10/min for registration; 20/min for login
-  and mutations.                                                                
+  - GET /api/health — Health check
+  - GET /api/events — List all events (supports filtering by userId, type, location)
+  - GET /api/events/<id> — Get a single event
+  - POST /api/events — Create an event
+  - PUT /api/events/<id> — Update an event
+  - DELETE /api/events/<id> — Delete an event
+  - POST /api/events/<id>/rsvp — Toggle RSVP attendance
+
+  Rate limits: 200 req/min default; 20/min for mutations; 30/min for RSVP.
+
+  See backend/README.md for detailed API documentation.                                                                
                                                             
   iOS App Setup
 
