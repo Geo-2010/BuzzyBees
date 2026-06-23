@@ -15,8 +15,9 @@ struct FilterView: View {
     @State private var useStartDate = false
     @State private var startDate = Date()
     @State private var useEndDate = false
-    @State private var endDate = Date()
+    @State private var endDate = Calendar.current.date(byAdding: .day, value: 7, to: Date()) ?? Date()
     @State private var selectedSort: SortOption = .eventDate
+    @State private var showDateRangeError = false
 
     var body: some View {
         NavigationStack {
@@ -75,11 +76,26 @@ struct FilterView: View {
                     if useEndDate {
                         DatePicker("End", selection: $endDate, displayedComponents: .date)
                     }
+
+                    // Warn when the range is impossible
+                    if useStartDate && useEndDate && startDate > endDate {
+                        HStack(spacing: 6) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.orange)
+                                .font(.caption)
+                            Text("End date must be after start date.")
+                                .font(.caption)
+                                .foregroundStyle(.orange)
+                        }
+                    }
                 }
 
                 Section {
+                    // Clears everything and dismisses immediately
                     Button("Clear All Filters", role: .destructive) {
-                        clearFilters()
+                        eventManager.applyFilters(FilterCriteria())
+                        eventManager.sortOption = .eventDate
+                        dismiss()
                     }
                 }
             }
@@ -103,6 +119,8 @@ struct FilterView: View {
                         applyFilters()
                     }
                     .foregroundStyle(AppTheme.gold)
+                    // Disable Apply when the date range is invalid
+                    .disabled(useStartDate && useEndDate && startDate > endDate)
                 }
             }
             .onAppear {
@@ -135,17 +153,6 @@ struct FilterView: View {
             useEndDate = true
             endDate = end
         }
-    }
-
-    private func clearFilters() {
-        selectedTypes = []
-        location = ""
-        keyword = ""
-        useStartDate = false
-        useEndDate = false
-        startDate = Date()
-        endDate = Date()
-        selectedSort = .eventDate
     }
 
     private func applyFilters() {

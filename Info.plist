@@ -47,5 +47,7 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>BuzzyBees uses your location to sort events by distance so you can find nearby activities.</string>
 </dict>
 </plist>

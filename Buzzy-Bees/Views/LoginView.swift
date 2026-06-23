@@ -48,6 +48,18 @@ struct LoginView: View {
     @State private var waveOffset: CGFloat = 0
     @State private var isExistingUser = false
 
+    // Inline email format error shown before submission
+    private var emailFormatError: String? {
+        guard !email.isEmpty else { return nil }
+        let trimmed = email.trimmingCharacters(in: .whitespaces)
+        guard trimmed.contains("@"), let atIndex = trimmed.firstIndex(of: "@") else {
+            return "Enter a valid email address"
+        }
+        let domain = String(trimmed[trimmed.index(after: atIndex)...])
+        guard domain.contains(".") else { return "Enter a valid email address" }
+        return nil
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -56,7 +68,6 @@ struct LoginView: View {
 
                 // Layered wavy background
                 GeometryReader { geometry in
-                    // Bottom gold wave
                     WaveShape(offset: waveOffset, amplitude: 40)
                         .fill(
                             LinearGradient(
@@ -68,7 +79,6 @@ struct LoginView: View {
                         .frame(height: geometry.size.height * 0.6)
                         .offset(y: geometry.size.height * 0.5)
 
-                    // Middle darker wave
                     WaveShape(offset: waveOffset + 1, amplitude: 50)
                         .fill(
                             LinearGradient(
@@ -80,7 +90,6 @@ struct LoginView: View {
                         .frame(height: geometry.size.height * 0.55)
                         .offset(y: geometry.size.height * 0.55)
 
-                    // Top subtle gold accent wave
                     WaveShape(offset: waveOffset + 2, amplitude: 30)
                         .fill(
                             LinearGradient(
@@ -92,7 +101,6 @@ struct LoginView: View {
                         .frame(height: geometry.size.height * 0.5)
                         .offset(y: geometry.size.height * 0.6)
 
-                    // Top decorative curve
                     Circle()
                         .fill(
                             RadialGradient(
@@ -123,7 +131,7 @@ struct LoginView: View {
                 VStack(spacing: 30) {
                     Spacer()
 
-                    // Logo section with curved container
+                    // Logo
                     VStack(spacing: 12) {
                         ZStack {
                             Circle()
@@ -157,75 +165,57 @@ struct LoginView: View {
                     }
                     .padding(.bottom, 20)
 
-                    // Input fields with more curves
+                    // Input fields
                     VStack(spacing: 18) {
-                        // Email field first - so we can check if user exists
-                        TextField("Email", text: $email)
-                            .onChange(of: email) { _, newValue in
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    isExistingUser = authManager.isExistingUser(email: newValue)
+                        // Email
+                        VStack(alignment: .leading, spacing: 4) {
+                            TextField("Email", text: $email)
+                                .onChange(of: email) { _, newValue in
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        isExistingUser = authManager.isExistingUser(email: newValue)
+                                    }
+                                    showError = false
                                 }
-                            }
-                            .textFieldStyle(.plain)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 16)
-                            .background(
-                                Capsule()
-                                    .fill(AppTheme.darkGray.opacity(0.8))
-                            )
-                            .foregroundStyle(.white)
-                            .overlay(
-                                Capsule()
-                                    .stroke(
+                                .textFieldStyle(.plain)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 16)
+                                .background(Capsule().fill(AppTheme.darkGray.opacity(0.8)))
+                                .foregroundStyle(.white)
+                                .overlay(
+                                    Capsule().stroke(
                                         LinearGradient(
-                                            colors: [AppTheme.gold.opacity(0.6), AppTheme.gold.opacity(0.2)],
+                                            colors: [
+                                                emailFormatError != nil ? Color.red.opacity(0.8) : AppTheme.gold.opacity(0.6),
+                                                emailFormatError != nil ? Color.red.opacity(0.4) : AppTheme.gold.opacity(0.2),
+                                            ],
                                             startPoint: .leading,
                                             endPoint: .trailing
                                         ),
                                         lineWidth: 1
                                     )
-                            )
-                            .textContentType(.emailAddress)
-                            .autocapitalization(.none)
-                            .keyboardType(.emailAddress)
+                                )
+                                .textContentType(.emailAddress)
+                                .autocapitalization(.none)
+                                .keyboardType(.emailAddress)
 
-                        // Only show name field for new users (email entered but not in directory)
+                            if let emailError = emailFormatError {
+                                Text(emailError)
+                                    .font(.caption)
+                                    .foregroundStyle(.red.opacity(0.85))
+                                    .padding(.leading, 12)
+                            }
+                        }
+
+                        // Display name — new users only
                         if !email.isEmpty && !isExistingUser {
                             TextField("Your Name (required for new users)", text: $displayName)
                                 .textFieldStyle(.plain)
                                 .padding(.horizontal, 20)
                                 .padding(.vertical, 16)
-                                .background(
-                                    Capsule()
-                                        .fill(AppTheme.darkGray.opacity(0.8))
-                                )
+                                .background(Capsule().fill(AppTheme.darkGray.opacity(0.8)))
                                 .foregroundStyle(.white)
                                 .overlay(
-                                    Capsule()
-                                        .stroke(
-                                            LinearGradient(
-                                                colors: [AppTheme.gold.opacity(0.6), AppTheme.gold.opacity(0.2)],
-                                                startPoint: .leading,
-                                                endPoint: .trailing
-                                            ),
-                                            lineWidth: 1
-                                        )
-                                )
-                                .textContentType(.name)
-                        }
-
-                        SecureField("Password", text: $password)
-                            .textFieldStyle(.plain)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 16)
-                            .background(
-                                Capsule()
-                                    .fill(AppTheme.darkGray.opacity(0.8))
-                            )
-                            .foregroundStyle(.white)
-                            .overlay(
-                                Capsule()
-                                    .stroke(
+                                    Capsule().stroke(
                                         LinearGradient(
                                             colors: [AppTheme.gold.opacity(0.6), AppTheme.gold.opacity(0.2)],
                                             startPoint: .leading,
@@ -233,43 +223,68 @@ struct LoginView: View {
                                         ),
                                         lineWidth: 1
                                     )
+                                )
+                                .textContentType(.name)
+                        }
+
+                        // Password — .newPassword for sign-up triggers iOS strong-password suggestion
+                        SecureField("Password", text: $password)
+                            .onChange(of: password) { _, _ in showError = false }
+                            .textFieldStyle(.plain)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 16)
+                            .background(Capsule().fill(AppTheme.darkGray.opacity(0.8)))
+                            .foregroundStyle(.white)
+                            .overlay(
+                                Capsule().stroke(
+                                    LinearGradient(
+                                        colors: [AppTheme.gold.opacity(0.6), AppTheme.gold.opacity(0.2)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    ),
+                                    lineWidth: 1
+                                )
                             )
-                            .textContentType(.password)
+                            .textContentType(isExistingUser ? .password : .newPassword)
                     }
                     .padding(.horizontal, 32)
 
-                    // Curvy login button
-                    Button(action: login) {
-                        Text("Login")
-                            .fontWeight(.bold)
-                            .font(.title3)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(
-                                Capsule()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [AppTheme.gold, AppTheme.darkGold],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
+                    // Login / Sign Up button
+                    Button(action: { Task { await login() } }) {
+                        ZStack {
+                            Text(buttonTitle)
+                                .fontWeight(.bold)
+                                .font(.title3)
+                                .opacity(authManager.isLoading ? 0 : 1)
+                            if authManager.isLoading {
+                                ProgressView().tint(.black)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            Capsule()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [AppTheme.gold, AppTheme.darkGold],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
                                     )
-                                    .shadow(color: AppTheme.gold.opacity(0.4), radius: 10, x: 0, y: 5)
-                            )
-                            .foregroundStyle(.black)
+                                )
+                                .shadow(color: AppTheme.gold.opacity(0.4), radius: 10, x: 0, y: 5)
+                        )
+                        .foregroundStyle(.black)
                     }
+                    .disabled(authManager.isLoading || emailFormatError != nil)
                     .padding(.horizontal, 32)
 
                     if showError {
-                        Text(isExistingUser ? "Please enter email and password" : "Please enter name, email and password")
+                        Text(authManager.authError ?? (isExistingUser ? "Please enter email and password" : "Please enter name, email and password"))
                             .foregroundStyle(.red)
                             .font(.caption)
                             .padding(.horizontal, 20)
                             .padding(.vertical, 8)
-                            .background(
-                                Capsule()
-                                    .fill(Color.red.opacity(0.1))
-                            )
+                            .background(Capsule().fill(Color.red.opacity(0.1)))
                     }
 
                     Spacer()
@@ -278,19 +293,27 @@ struct LoginView: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
-                withAnimation(
-                    .easeInOut(duration: 4)
-                    .repeatForever(autoreverses: true)
-                ) {
+                withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
                     waveOffset = .pi * 2
                 }
             }
         }
     }
 
-    private func login() {
-        if authManager.login(email: email, password: password, displayName: displayName) {
-            eventManager.loadEventsForUser(email)
+    private var buttonTitle: String {
+        guard !email.isEmpty else { return "Login" }
+        return isExistingUser ? "Login" : "Sign Up"
+    }
+
+    private func login() async {
+        showError = false
+        let success = await authManager.login(
+            email: email,
+            password: password,
+            displayName: displayName
+        )
+        if success {
+            eventManager.loadEventsForUser(email.lowercased())
         } else {
             showError = true
         }

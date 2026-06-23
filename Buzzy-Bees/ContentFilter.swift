@@ -33,7 +33,11 @@ struct ContentFilter {
     /// - Parameter text: The text to check
     /// - Returns: true if the content is safe, false if it contains blocked words
     static func isContentSafe(_ text: String) -> Bool {
-        let lowercased = text.lowercased()
+        // Normalize Unicode: transliterate Cyrillic/Greek/etc. lookalikes to Latin,
+        // then strip diacritics. This catches bypasses like "fuckе" (Cyrillic е).
+        let transliterated = text.applyingTransform(.toLatin, reverse: false) ?? text
+        let stripped = transliterated.applyingTransform(.stripDiacritics, reverse: false) ?? transliterated
+        let lowercased = stripped.lowercased()
 
         // Remove special characters and check
         let cleaned = lowercased.replacingOccurrences(of: "[^a-z0-9]", with: "", options: .regularExpression)
