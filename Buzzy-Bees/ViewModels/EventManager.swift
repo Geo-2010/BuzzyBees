@@ -57,6 +57,9 @@ class EventManager {
     // Prevents concurrent waitlist toggles on the same event
     private var pendingWaitlistIds: Set<UUID> = []
 
+    // Feature 13: Track known event IDs to detect new nearby events
+    private var knownEventIds: Set<UUID> = []
+
     // Network path monitor for real-time connectivity
     private var networkMonitor: NWPathMonitor?
     private let monitorQueue = DispatchQueue(label: "com.buzzybees.network.monitor")
@@ -165,6 +168,9 @@ class EventManager {
             hasMorePages = serverEvents.count < total
             lastSyncedAt = Date()
 
+            // Feature 13: Track event IDs before merge to detect new nearby events
+            let previousKnownIds = knownEventIds.isEmpty ? Set(events.map(\.id)) : knownEventIds
+
             // Merge: server is source of truth; push any local-only events up
             var mergedEvents = serverEvents
             for localEvent in events {
@@ -179,9 +185,22 @@ class EventManager {
             }
 
             events = mergedEvents
+            knownEventIds = Set(mergedEvents.map(\.id))
             cleanupPastEvents()
             saveEventsToLocal()
             refreshPlusOnes()
+
+            // Feature 13: Notify for up to 2 new nearby events (within 5km)
+            let notificationManager = NotificationManager.shared
+            let newNearbyEvents = mergedEvents
+                .filter { !previousKnownIds.contains($0.id) }
+                .filter { event in
+                    guard let dist = distanceForEvent(event) else { return false }
+                    return dist <= 5000
+                }
+            for event in newNearbyEvents.prefix(2) {
+                notificationManager.notifyNewNearbyEvent(eventTitle: event.title, location: event.location)
+            }
         } catch {
             isOnline = false
             errorMessage = error.localizedDescription
@@ -419,6 +438,12 @@ class EventManager {
             let (_, _, updatedEvent) = try await api.toggleWaitlist(eventId: eventId, userId: userId)
             isOnline = true
             if let index = events.firstIndex(where: { $0.id == eventId }) {
+                let wasOnWaitlist = previousWaitlist.contains(userId)
+                let isNowAttending = updatedEvent.attendees.contains(userId)
+                // Feature 13: Notify if promoted from waitlist to attending
+                if wasOnWaitlist && isNowAttending {
+                    NotificationManager.shared.notifyWaitlistPromotion(eventTitle: updatedEvent.title)
+                }
                 events[index].waitlist = updatedEvent.waitlist
                 events[index].attendees = updatedEvent.attendees
                 saveEventsToLocal()

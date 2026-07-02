@@ -14,6 +14,7 @@ struct ProfileView: View {
     @State private var isSaving = false
     @State private var showError = false
     @State private var showLogoutConfirm = false
+    @State private var avatarGlow = false
 
     private var currentUser: User? { authManager.currentUser }
 
@@ -40,12 +41,18 @@ struct ProfileView: View {
                                 .fill(LinearGradient(colors: [AppTheme.gold, AppTheme.darkGold], startPoint: .topLeading, endPoint: .bottomTrailing))
                                 .frame(width: 90, height: 90)
                                 .shadow(color: AppTheme.gold.opacity(0.4), radius: 12, x: 0, y: 4)
+                                .shadow(color: AppTheme.gold.opacity(avatarGlow ? 0.6 : 0.15), radius: avatarGlow ? 20 : 8, x: 0, y: 0)
 
                             Text((currentUser?.displayName.prefix(1) ?? "?").uppercased())
                                 .font(.system(size: 38, weight: .bold))
                                 .foregroundStyle(.black)
                         }
                         .padding(.top, 16)
+                        .onAppear {
+                            withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
+                                avatarGlow = true
+                            }
+                        }
 
                         // Display Name
                         VStack(spacing: 4) {

@@ -44,6 +44,19 @@ struct EventDetailView: View {
         eventManager.getEvent(by: event.id) ?? event
     }
 
+    private var shareText: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return """
+        🐝 \(currentEvent.title)
+        📍 \(currentEvent.location)
+        🗓 \(formatter.string(from: currentEvent.date))
+
+        Join me on BuzzyBees!
+        """
+    }
+
     private var isAttending: Bool {
         guard let userId = authManager.currentUser?.email else { return false }
         return eventManager.isUserAttending(eventId: event.id, userId: userId)
@@ -79,6 +92,13 @@ struct EventDetailView: View {
         .toolbarBackground(AppTheme.black, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                ShareLink(item: shareText) {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(AppTheme.gold)
+                }
+            }
             if currentEvent.userId == authManager.currentUser?.email {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Edit") { showEditEvent = true }

@@ -39,18 +39,16 @@ struct MyEventsView: View {
                 GeometryReader { geometry in
                     VerticalWaveShape(offset: waveOffset, amplitude: 25)
                         .fill(LinearGradient(colors: [AppTheme.gold.opacity(0.25), AppTheme.gold.opacity(0.08)], startPoint: .trailing, endPoint: .leading))
-                        .rotationEffect(.degrees(180))
-                        .offset(x: geometry.size.width)
+                        .scaleEffect(x: -1, anchor: .center)
 
                     VerticalWaveShape(offset: waveOffset + 1, amplitude: 20)
                         .fill(LinearGradient(colors: [AppTheme.darkGold.opacity(0.2), AppTheme.gold.opacity(0.05)], startPoint: .trailing, endPoint: .leading))
-                        .rotationEffect(.degrees(180))
-                        .offset(x: geometry.size.width)
+                        .scaleEffect(x: -1, anchor: .center)
 
                     Circle()
                         .fill(RadialGradient(colors: [AppTheme.gold.opacity(0.15), AppTheme.gold.opacity(0)], center: .center, startRadius: 0, endRadius: 130))
                         .frame(width: 260, height: 260)
-                        .offset(x: geometry.size.width - 60, y: 100)
+                        .offset(x: geometry.size.width - 200, y: 100)
 
                     Circle()
                         .fill(RadialGradient(colors: [AppTheme.gold.opacity(0.1), AppTheme.gold.opacity(0)], center: .center, startRadius: 0, endRadius: 200))

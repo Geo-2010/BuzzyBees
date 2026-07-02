@@ -204,6 +204,7 @@ struct LoginView: View {
                                     .foregroundStyle(.red.opacity(0.85))
                                     .padding(.leading, 12)
                             }
+
                         }
 
                         // Display name — new users only

@@ -52,6 +52,11 @@ struct MainView: View {
                     Label("My Events", systemImage: "person.crop.circle")
                 }
 
+            MapTabView()
+                .tabItem {
+                    Label("Map", systemImage: "map")
+                }
+
             ProfileView()
                 .tabItem {
                     Label("Profile", systemImage: "gear")
@@ -91,6 +96,8 @@ struct EventsTab: View {
     @State private var showFilters = false
     @State private var waveOffset: CGFloat = 0
     @State private var greeting = EventsTab.timeAwareGreeting()
+    @State private var searchText = ""
+    @State private var selectedTypeFilter: EventType? = nil
 
     private static func timeAwareGreeting(for firstName: String? = nil) -> String {
         let name = firstName.map { ", \($0)" } ?? ""
@@ -113,7 +120,24 @@ struct EventsTab: View {
         }
     }
 
-    private var displayedEvents: [Event] { eventManager.filteredEvents }
+    private var todayEvents: [Event] {
+        let cal = Calendar.current
+        return eventManager.filteredEvents.filter { cal.isDateInToday($0.date) }
+    }
+
+    private var displayedEvents: [Event] {
+        var base = eventManager.filteredEvents
+        if let typeFilter = selectedTypeFilter {
+            base = base.filter { $0.type == typeFilter }
+        }
+        guard !searchText.trimmingCharacters(in: .whitespaces).isEmpty else { return base }
+        let q = searchText.lowercased()
+        return base.filter {
+            $0.title.lowercased().contains(q) ||
+            $0.location.lowercased().contains(q) ||
+            $0.type.rawValue.lowercased().contains(q)
+        }
+    }
 
     /// Human-readable "last synced" label for the offline banner
     private var lastSyncedLabel: String {
@@ -176,7 +200,129 @@ struct EventsTab: View {
                         .padding(.top, 4)
                     }
 
-                    if displayedEvents.isEmpty {
+                    // FEATURE 1: Search Bar
+                    HStack(spacing: 10) {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundStyle(.white.opacity(0.4))
+                            .font(.system(size: 14))
+                        TextField("Search events...", text: $searchText)
+                            .foregroundStyle(.white)
+                            .font(.subheadline)
+                            .autocorrectionDisabled()
+                        if !searchText.isEmpty {
+                            Button { searchText = "" } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.white.opacity(0.4))
+                                    .font(.system(size: 14))
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(RoundedRectangle(cornerRadius: 12).fill(AppTheme.darkGray.opacity(0.7)))
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 8)
+
+                    // FEATURE 3: Happening Today Banner
+                    if !todayEvents.isEmpty && searchText.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("Happening Today")
+                                    .font(.headline)
+                                    .foregroundStyle(.white)
+                                Capsule()
+                                    .fill(AppTheme.gold)
+                                    .frame(width: 6, height: 6)
+                                Text("\(todayEvents.count) event\(todayEvents.count == 1 ? "" : "s")")
+                                    .font(.caption)
+                                    .foregroundStyle(AppTheme.gold)
+                                Spacer()
+                            }
+                            .padding(.horizontal, 16)
+
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 12) {
+                                    ForEach(todayEvents) { event in
+                                        NavigationLink(destination: EventDetailView(event: event)) {
+                                            VStack(alignment: .leading, spacing: 6) {
+                                                HStack(spacing: 6) {
+                                                    Image(systemName: event.type.icon)
+                                                        .font(.caption)
+                                                        .foregroundStyle(event.type.color)
+                                                    Text(event.type.rawValue)
+                                                        .font(.caption2)
+                                                        .foregroundStyle(event.type.color)
+                                                }
+                                                Text(event.title)
+                                                    .font(.subheadline.bold())
+                                                    .foregroundStyle(.white)
+                                                    .lineLimit(2)
+                                                    .multilineTextAlignment(.leading)
+                                                HStack(spacing: 4) {
+                                                    Image(systemName: "clock.fill")
+                                                        .font(.caption2)
+                                                        .foregroundStyle(AppTheme.gold.opacity(0.7))
+                                                    Text(event.date, style: .time)
+                                                        .font(.caption2)
+                                                        .foregroundStyle(.white.opacity(0.6))
+                                                }
+                                            }
+                                            .frame(width: 150)
+                                            .padding(12)
+                                            .background(RoundedRectangle(cornerRadius: 14).fill(AppTheme.darkGray.opacity(0.8)).overlay(RoundedRectangle(cornerRadius: 14).stroke(AppTheme.gold.opacity(0.25), lineWidth: 1)))
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal, 16)
+                            }
+                        }
+                        .padding(.bottom, 4)
+                    }
+
+                    // FEATURE 4: Quick Type Filter Chips
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            Button {
+                                selectedTypeFilter = nil
+                            } label: {
+                                Text("All")
+                                    .font(.caption.bold())
+                                    .foregroundStyle(selectedTypeFilter == nil ? .black : .white.opacity(0.7))
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 7)
+                                    .background(Capsule().fill(selectedTypeFilter == nil ? AppTheme.gold : AppTheme.darkGray.opacity(0.7)))
+                            }
+
+                            ForEach(EventType.allCases) { type in
+                                Button {
+                                    selectedTypeFilter = selectedTypeFilter == type ? nil : type
+                                } label: {
+                                    HStack(spacing: 5) {
+                                        Image(systemName: type.icon)
+                                            .font(.caption2)
+                                        Text(type.rawValue)
+                                            .font(.caption.bold())
+                                    }
+                                    .foregroundStyle(selectedTypeFilter == type ? .black : .white.opacity(0.7))
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 7)
+                                    .background(Capsule().fill(selectedTypeFilter == type ? AppTheme.gold : AppTheme.darkGray.opacity(0.7)))
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 8)
+                    }
+
+                    if eventManager.isLoading && displayedEvents.isEmpty {
+                        // Skeleton loading placeholders
+                        VStack(spacing: 0) {
+                            ForEach(0..<5, id: \.self) { _ in
+                                SkeletonCardView()
+                            }
+                        }
+                        .padding(.top, 8)
+                    } else if displayedEvents.isEmpty {
                         Spacer()
                         let filtersActive = !eventManager.activeFilters.isEmpty
                         VStack(spacing: 16) {

@@ -169,4 +169,42 @@ class NotificationManager {
         }
         return decoded
     }
+
+    // MARK: - Feature 13: Enhanced Notification Types
+
+    /// Notify the user that they've been promoted off the waitlist
+    func notifyWaitlistPromotion(eventTitle: String) {
+        let content = UNMutableNotificationContent()
+        content.title = "Spot opened up! 🎉"
+        content.body = "You're off the waitlist for \(eventTitle). You're now attending!"
+        content.sound = .default
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let request = UNNotificationRequest(identifier: "waitlist_\(UUID().uuidString)", content: content, trigger: trigger)
+        center.add(request)
+    }
+
+    /// Notify the user about a new nearby event
+    func notifyNewNearbyEvent(eventTitle: String, location: String) {
+        let content = UNMutableNotificationContent()
+        content.title = "New event nearby 📍"
+        content.body = "\(eventTitle) at \(location)"
+        content.sound = .default
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let request = UNNotificationRequest(identifier: "nearby_\(UUID().uuidString)", content: content, trigger: trigger)
+        center.add(request)
+    }
+
+    /// Schedule a 1-hour-before notification for an event starting soon
+    func scheduleEventStartingSoon(eventId: UUID, eventTitle: String, eventDate: Date) {
+        let fireDate = eventDate.addingTimeInterval(-3600)
+        guard fireDate > Date() else { return }
+        let content = UNMutableNotificationContent()
+        content.title = "Starting in 1 hour ⏰"
+        content.body = "\(eventTitle) is coming up!"
+        content.sound = .default
+        let interval = fireDate.timeIntervalSinceNow
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
+        let request = UNNotificationRequest(identifier: "soon_\(eventId.uuidString)", content: content, trigger: trigger)
+        center.add(request)
+    }
 }

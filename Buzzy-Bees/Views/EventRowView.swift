@@ -20,6 +20,9 @@ struct EventRowView: View {
     var swarmMinAttendees: Int? = nil
     var attendeeCount: Int = 0
 
+    @State private var glowPulse = false
+    @State private var isPressed = false
+
     private var formattedDistance: String? {
         guard let distance else { return nil }
         if distance < 1 { return String(format: "%.0f m away", distance * 1000) }
@@ -181,14 +184,32 @@ struct EventRowView: View {
             RoundedRectangle(cornerRadius: 20)
                 .stroke(
                     LinearGradient(
-                        colors: [.white.opacity(0.15), AppTheme.gold.opacity(0.1), .white.opacity(0.05)],
+                        colors: buzzScore >= 3
+                            ? [Color.orange.opacity(0.7), AppTheme.gold.opacity(0.5), Color.orange.opacity(0.4)]
+                            : [event.type.color.opacity(0.3), AppTheme.gold.opacity(0.15), event.type.color.opacity(0.1)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
-                    lineWidth: 1
+                    lineWidth: buzzScore >= 3 ? 1.5 : 1
                 )
         )
         .shadow(color: AppTheme.black.opacity(0.4), radius: 10, x: 0, y: 5)
+        .shadow(
+            color: buzzScore >= 3 ? .orange.opacity(glowPulse ? 0.8 : 0.2) : .clear,
+            radius: glowPulse ? 12 : 4
+        )
+        .scaleEffect(isPressed ? 0.97 : 1.0)
+        .animation(.easeInOut(duration: 0.15), value: isPressed)
+        .onLongPressGesture(minimumDuration: .infinity, pressing: { pressing in
+            isPressed = pressing
+        }, perform: {})
+        .onAppear {
+            if buzzScore >= 3 {
+                withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+                    glowPulse = true
+                }
+            }
+        }
     }
 }
 

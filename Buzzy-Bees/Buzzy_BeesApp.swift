@@ -14,32 +14,42 @@ struct Buzzy_BeesApp: App {
     @State private var locationManager = LocationManager()
     private var notificationManager = NotificationManager.shared
 
+    // Feature 15: Onboarding — shown only on first launch
+    @State private var hasSeenOnboarding = UserDefaults.standard.bool(forKey: "hasSeenOnboarding")
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(authManager)
-                .environment(eventManager)
-                .environment(locationManager)
-                .onAppear {
-                    eventManager.locationManager = locationManager
-                    locationManager.requestPermission()
-                    // Strategic prompt #1: app launch
-                    notificationManager.promptIfNeeded()
-                }
-                .alert("Enable Notifications?",
-                       isPresented: Binding(
-                        get: { notificationManager.showPermissionPrompt },
-                        set: { notificationManager.showPermissionPrompt = $0 }
-                       )) {
-                    Button("Enable") {
-                        notificationManager.userAcceptedPrompt()
+            if !hasSeenOnboarding {
+                OnboardingView(onComplete: {
+                    hasSeenOnboarding = true
+                    UserDefaults.standard.set(true, forKey: "hasSeenOnboarding")
+                })
+            } else {
+                ContentView()
+                    .environment(authManager)
+                    .environment(eventManager)
+                    .environment(locationManager)
+                    .onAppear {
+                        eventManager.locationManager = locationManager
+                        locationManager.requestPermission()
+                        // Strategic prompt #1: app launch
+                        notificationManager.promptIfNeeded()
                     }
-                    Button("Not Now", role: .cancel) {
-                        notificationManager.userDeclinedPrompt()
+                    .alert("Enable Notifications?",
+                           isPresented: Binding(
+                            get: { notificationManager.showPermissionPrompt },
+                            set: { notificationManager.showPermissionPrompt = $0 }
+                           )) {
+                        Button("Enable") {
+                            notificationManager.userAcceptedPrompt()
+                        }
+                        Button("Not Now", role: .cancel) {
+                            notificationManager.userDeclinedPrompt()
+                        }
+                    } message: {
+                        Text("Get reminders before events you RSVP to so you never miss out!")
                     }
-                } message: {
-                    Text("Get reminders before events you RSVP to so you never miss out!")
-                }
+            }
         }
     }
 }

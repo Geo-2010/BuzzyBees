@@ -380,7 +380,7 @@ def register():
     if missing:
         return jsonify({'error': f'Missing required fields: {", ".join(missing)}'}), 400
 
-    email = data['email'].strip().lower()
+    email = data.get('email', '').lower().strip()
     password = data['password']
     display_name = data['displayName'].strip()
 

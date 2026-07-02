@@ -30,6 +30,9 @@
 		5FA394092F27CBDB00DE1001 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA394092F27CBDB00DE107C /* ProfileView.swift */; };
 		5FA3940A2F27CBDB00DE1001 /* MyEventsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA3940A2F27CBDB00DE107C /* MyEventsView.swift */; };
 		5FA3940B2F27CBDB00DE1001 /* EventDNAView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA3940B2F27CBDB00DE107C /* EventDNAView.swift */; };
+		5FA3940C2F27CBDB00DE1001 /* MapTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA3940C2F27CBDB00DE107C /* MapTabView.swift */; };
+		5FA3940D2F27CBDB00DE1001 /* SkeletonCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA3940D2F27CBDB00DE107C /* SkeletonCardView.swift */; };
+		5FA3940E2F27CBDB00DE1001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA3940E2F27CBDB00DE107C /* OnboardingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -57,6 +60,9 @@
 		5FA394092F27CBDB00DE107C /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		5FA3940A2F27CBDB00DE107C /* MyEventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyEventsView.swift; sourceTree = "<group>"; };
 		5FA3940B2F27CBDB00DE107C /* EventDNAView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventDNAView.swift; sourceTree = "<group>"; };
+		5FA3940C2F27CBDB00DE107C /* MapTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapTabView.swift; sourceTree = "<group>"; };
+		5FA3940D2F27CBDB00DE107C /* SkeletonCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkeletonCardView.swift; sourceTree = "<group>"; };
+		5FA3940E2F27CBDB00DE107C /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -128,6 +134,9 @@
 				5FA394092F27CBDB00DE107C /* ProfileView.swift */,
 				5FA3940A2F27CBDB00DE107C /* MyEventsView.swift */,
 				5FA3940B2F27CBDB00DE107C /* EventDNAView.swift */,
+				5FA3940C2F27CBDB00DE107C /* MapTabView.swift */,
+				5FA3940D2F27CBDB00DE107C /* SkeletonCardView.swift */,
+				5FA3940E2F27CBDB00DE107C /* OnboardingView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -242,6 +251,9 @@
 				5FA394092F27CBDB00DE1001 /* ProfileView.swift in Sources */,
 				5FA3940A2F27CBDB00DE1001 /* MyEventsView.swift in Sources */,
 				5FA3940B2F27CBDB00DE1001 /* EventDNAView.swift in Sources */,
+				5FA3940C2F27CBDB00DE1001 /* MapTabView.swift in Sources */,
+				5FA3940D2F27CBDB00DE1001 /* SkeletonCardView.swift in Sources */,
+				5FA3940E2F27CBDB00DE1001 /* OnboardingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
