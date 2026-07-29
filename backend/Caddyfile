@@ -1,0 +1,19 @@
+# Caddyfile — reverse proxy + automatic HTTPS for the BuzzyBees API.
+#
+# Replace your-domain.com with the real domain once its DNS A record
+# points at this server. Caddy handles TLS cert issuance/renewal via
+# Let's Encrypt automatically — no manual certbot steps needed.
+#
+# Usage:
+#   1. Install Caddy:            https://caddyserver.com/docs/install
+#   2. Point DNS: A record for your-domain.com -> this server's public IP
+#   3. Run the Flask app as usual on 127.0.0.1:5001 (keep it bound to
+#      localhost only — do not expose port 5001 publicly once this is live)
+#   4. Run Caddy from this directory:  sudo caddy run --config Caddyfile
+#      (or install as a systemd service: sudo caddy start / caddy reload)
+#   5. Update Buzzy-Bees/Services/APIService.swift baseURL to
+#      "https://your-domain.com" and rebuild the app.
+
+your-domain.com {
+    reverse_proxy localhost:5001
+}

@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import UserNotifications
 
 struct ProfileView: View {
     @Environment(AuthManager.self) private var authManager
@@ -15,6 +16,7 @@ struct ProfileView: View {
     @State private var showError = false
     @State private var showLogoutConfirm = false
     @State private var avatarGlow = false
+    @State private var notificationStatus: UNAuthorizationStatus = .notDetermined
 
     private var currentUser: User? { authManager.currentUser }
 
@@ -125,6 +127,31 @@ struct ProfileView: View {
                         .background(RoundedRectangle(cornerRadius: 16).fill(AppTheme.darkGray.opacity(0.4)).overlay(RoundedRectangle(cornerRadius: 16).stroke(AppTheme.gold.opacity(0.15), lineWidth: 1)))
                         .padding(.horizontal)
 
+                        // Notifications — always reachable here, independent of the
+                        // in-app soft-ask prompt cap, so users are never permanently
+                        // locked out of turning reminders on if they change their mind.
+                        VStack(alignment: .leading, spacing: 0) {
+                            SectionHeader(title: "Notifications")
+                            Button {
+                                Task {
+                                    await NotificationManager.shared.requestPermissionExplicitly()
+                                    notificationStatus = await NotificationManager.shared.currentAuthorizationStatus()
+                                }
+                            } label: {
+                                InfoRow(
+                                    icon: "bell.badge",
+                                    label: "Event Reminders",
+                                    value: notificationStatusLabel
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .background(RoundedRectangle(cornerRadius: 16).fill(AppTheme.darkGray.opacity(0.4)).overlay(RoundedRectangle(cornerRadius: 16).stroke(AppTheme.gold.opacity(0.15), lineWidth: 1)))
+                        .padding(.horizontal)
+                        .task {
+                            notificationStatus = await NotificationManager.shared.currentAuthorizationStatus()
+                        }
+
                         // Feature 5: Echo history from events the user organized
                         let organizerEchoes = eventManager.events
                             .filter { $0.userId == currentUser?.email && !$0.echoes.isEmpty }
@@ -212,6 +239,15 @@ struct ProfileView: View {
             }
         }
         .preferredColorScheme(.dark)
+    }
+
+    private var notificationStatusLabel: String {
+        switch notificationStatus {
+        case .authorized, .provisional, .ephemeral: return "On"
+        case .denied: return "Off — tap to open Settings"
+        case .notDetermined: return "Tap to enable"
+        @unknown default: return "Tap to enable"
+        }
     }
 
     private func saveDisplayName() {

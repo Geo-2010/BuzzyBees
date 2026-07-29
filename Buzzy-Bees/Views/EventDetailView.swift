@@ -10,10 +10,12 @@ struct EventDetailView: View {
     let event: Event
     @Environment(EventManager.self) private var eventManager
     @Environment(AuthManager.self) private var authManager
+    @Environment(LocationManager.self) private var locationManager
 
     @State private var selectedReminders: Set<ReminderOption> = []
     @State private var showConfetti = false
     @State private var showEditEvent = false
+    @State private var showLocationRequiredAlert = false
 
     // Feature 4: En Route
     @State private var travelStatus: String = "none"  // "none", "en_route", "arrived"
@@ -116,6 +118,7 @@ struct EventDetailView: View {
             if currentEvent.enRouteUsers.contains(userId) { travelStatus = "en_route" }
             else if currentEvent.arrivedUsers.contains(userId) { travelStatus = "arrived" }
             else { travelStatus = "none" }
+            checkLocationRequirement()
         }
         .alert("Enable Notifications?",
                isPresented: Binding(
@@ -126,6 +129,19 @@ struct EventDetailView: View {
             Button("Not Now", role: .cancel) { NotificationManager.shared.userDeclinedPrompt() }
         } message: {
             Text("Enable notifications to get reminders before events you're attending!")
+        }
+        // Location is required to view event details (distance, maps, blind-location
+        // reveal all depend on it). Unlike the notification soft-ask, this has no
+        // decline cap — it re-asks every time the user opens an event until granted.
+        .alert("Location Required", isPresented: $showLocationRequiredAlert) {
+            Button("Open Settings") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("Not Now", role: .cancel) { }
+        } message: {
+            Text("BuzzyBees needs your location to show event details. Please enable Location Services for BuzzyBees in Settings.")
         }
     }
 
@@ -494,6 +510,18 @@ struct EventDetailView: View {
         }
     }
 
+    /// Re-checked every time this view appears — location is required, so a user
+    /// who hasn't granted it (or who denied it) gets asked again on every event visit.
+    private func checkLocationRequirement() {
+        if locationManager.isAuthorized {
+            return
+        } else if locationManager.needsPermissionRequest {
+            locationManager.requestPermission()
+        } else if locationManager.isPermissionDenied {
+            showLocationRequiredAlert = true
+        }
+    }
+
     private func openInMaps() {
         if let lat = currentEvent.latitude, let lon = currentEvent.longitude {
             let encodedName = currentEvent.title.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
@@ -720,4 +748,5 @@ struct TravelButton: View {
     }
     .environment(AuthManager())
     .environment(EventManager())
+    .environment(LocationManager())
 }

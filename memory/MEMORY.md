@@ -47,8 +47,35 @@ iOS event discovery app (Swift/SwiftUI) + Python/Flask backend.
 - Backend: CORS restricted to explicit origin list (env var `CORS_ORIGINS`, defaults to localhost)
 - ContentFilter: Unicode normalization (`.toLatin` + `.stripDiacritics`) blocks Cyrillic lookalike bypasses
 
+## Improvements Applied (July 2026 — Update 3)
+Since Update 2 the app grew substantially with 6 new backend features (Swarm Mode,
+Blind Location, Buzz/momentum, En Route status, Post-Event Echoes, Plus-One tokens)
+plus iOS-side additions (Feature 13 enhanced notifications, Feature 15 onboarding,
+Memory Tiles, Event DNA). This round addressed the remaining items from Update 2:
+- Notification re-ask permanent lockout: `NotificationManager.requestPermissionExplicitly()`
+  + a "Notifications" row in ProfileView now let a user (re-)enable/deep-link to Settings
+  any time, independent of the 3-prompt soft-ask cap (`promptCount` still throttles only
+  the *unsolicited* auto-prompt in `Buzzy_BeesApp.swift`).
+- Waitlist promotion notification only fired for the user whose own action freed a slot.
+  The common case — someone *else* cancels and a different device gets promoted — never
+  notified that user. Fixed by tracking `EventManager.currentUserId` (set on login in
+  `loadEventsForUser` and again every relaunch via `MainView.onAppear` →
+  `eventManager.setCurrentUser(...)`, since a warm relaunch skips LoginView entirely) and
+  diffing waitlist membership across `fetchEventsFromServer()` syncs.
+- Backend CSV-list handling (attendees/waitlist/en_route/arrived) was duplicated ~12x
+  across `backend/app.py`. DRYed into `_csv_list()` / `_csv_join()` helpers — no schema
+  or behavior change, just centralizes the encode/decode so a future move to a real
+  join table only touches two functions. Verified via a scripted Flask test-client run
+  (register → RSVP → waitlist → auto-promote → en-route/arrived) before/after.
+- HTTPS and a full CSV→relational-table migration were deliberately NOT done this round:
+  HTTPS needs an actual domain/cert the assistant can't provision, and the schema
+  migration is invasive (touches nearly every endpoint) with zero test coverage in the
+  repo to catch a regression — flagged to the user rather than done blind.
+
 ## Remaining Known Issues (Low priority)
 - No HTTPS yet — requires SSL cert + domain on server (see deployment checklist in app.py)
-- Attendees/waitlist stored as CSV in SQLite (fragile DB design)
-- No push notifications when promoted from waitlist
-- Notification re-ask blocked permanently after 3 denials (promptCount logic)
+- Attendees/waitlist/en_route/arrived still CSV text columns, not a join table (encode/decode
+  now centralized in `_csv_list`/`_csv_join`, but the underlying schema is unchanged)
+- No automated test suite exists for backend or iOS — any nontrivial backend change should
+  be smoke-tested manually (see Update 3 test script pattern: spin a venv, use Flask's
+  `test_client()`) since there's nothing to catch regressions otherwise

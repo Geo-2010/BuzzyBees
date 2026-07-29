@@ -60,6 +60,18 @@ class EventManager {
     // Feature 13: Track known event IDs to detect new nearby events
     private var knownEventIds: Set<UUID> = []
 
+    // Current user's id, set at login. Used to detect server-side waitlist
+    // promotions (e.g. someone else cancelled and opened up a spot) so we can
+    // fire a local notification even though this device didn't trigger the change.
+    private(set) var currentUserId: String?
+
+    /// Set on login and again on every relaunch (MainView.onAppear), since a
+    /// warm relaunch of an already-authenticated session never calls
+    /// `loadEventsForUser` directly.
+    func setCurrentUser(_ userId: String?) {
+        currentUserId = userId
+    }
+
     // Network path monitor for real-time connectivity
     private var networkMonitor: NWPathMonitor?
     private let monitorQueue = DispatchQueue(label: "com.buzzybees.network.monitor")
@@ -151,6 +163,7 @@ class EventManager {
     // MARK: - Load / Fetch
 
     func loadEventsForUser(_ userId: String) {
+        currentUserId = userId
         loadEventsFromLocal()
         Task { await fetchEventsFromServer() }
         cleanupPastEvents()
@@ -171,6 +184,14 @@ class EventManager {
             // Feature 13: Track event IDs before merge to detect new nearby events
             let previousKnownIds = knownEventIds.isEmpty ? Set(events.map(\.id)) : knownEventIds
 
+            // Track which events the current user was waitlisted on before the merge,
+            // so we can detect promotions triggered by someone else's action (e.g. a
+            // cancellation) — those never pass through toggleWaitlistOnServer locally.
+            let previouslyWaitlistedEventIds: Set<UUID> = {
+                guard let userId = currentUserId else { return [] }
+                return Set(events.filter { $0.waitlist.contains(userId) }.map(\.id))
+            }()
+
             // Merge: server is source of truth; push any local-only events up
             var mergedEvents = serverEvents
             for localEvent in events {
@@ -190,8 +211,19 @@ class EventManager {
             saveEventsToLocal()
             refreshPlusOnes()
 
-            // Feature 13: Notify for up to 2 new nearby events (within 5km)
             let notificationManager = NotificationManager.shared
+
+            // Notify if the current user was promoted from a waitlist since the last sync.
+            if let userId = currentUserId, !previouslyWaitlistedEventIds.isEmpty {
+                let promotedEvents = mergedEvents.filter {
+                    previouslyWaitlistedEventIds.contains($0.id) && $0.attendees.contains(userId)
+                }
+                for event in promotedEvents {
+                    notificationManager.notifyWaitlistPromotion(eventTitle: event.title)
+                }
+            }
+
+            // Feature 13: Notify for up to 2 new nearby events (within 5km)
             let newNearbyEvents = mergedEvents
                 .filter { !previousKnownIds.contains($0.id) }
                 .filter { event in

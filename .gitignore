@@ -1,2 +1,6 @@
 .DS_Store
 /build
+backend/events.db
+backend/.jwt_secret
+backend/__pycache__/
+backend/venv/

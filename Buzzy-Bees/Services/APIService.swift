@@ -317,15 +317,30 @@ class APIService {
         catch { throw APIServiceError.networkError(error) }
     }
 
-    func register(email: String, password: String, displayName: String) async throws -> AuthResponse {
+    func register(
+        email: String,
+        password: String,
+        displayName: String,
+        securityQuestion: String,
+        securityAnswers: [String]
+    ) async throws -> AuthResponse {
         guard let url = URL(string: "\(baseURL)/api/auth/register") else {
             throw APIServiceError.invalidURL
         }
-        let body = try encoder.encode([
-            "email": email,
-            "password": password,
-            "displayName": displayName,
-        ])
+        struct RegisterRequest: Codable {
+            let email: String
+            let password: String
+            let displayName: String
+            let securityQuestion: String
+            let securityAnswers: [String]
+        }
+        let body = try encoder.encode(RegisterRequest(
+            email: email,
+            password: password,
+            displayName: displayName,
+            securityQuestion: securityQuestion,
+            securityAnswers: securityAnswers
+        ))
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -345,6 +360,63 @@ class APIService {
                 throw APIServiceError.serverError(msg)
             }
             return try decoder.decode(AuthResponse.self, from: data)
+        } catch let e as APIServiceError { throw e }
+        catch let e as DecodingError { throw APIServiceError.decodingError(e) }
+        catch { throw APIServiceError.networkError(error) }
+    }
+
+    /// Step 1 of password recovery — look up the account's security question by email.
+    func getSecurityQuestion(email: String) async throws -> String {
+        guard var components = URLComponents(string: "\(baseURL)/api/auth/security-question") else {
+            throw APIServiceError.invalidURL
+        }
+        components.queryItems = [URLQueryItem(name: "email", value: email)]
+        guard let url = components.url else { throw APIServiceError.invalidURL }
+
+        do {
+            let (data, response) = try await session.data(from: url)
+            guard let http = response as? HTTPURLResponse else { throw APIServiceError.unknownError }
+            if http.statusCode == 404 {
+                throw APIServiceError.serverError("No account found with that email")
+            }
+            if http.statusCode != 200 {
+                let msg = (try? decoder.decode(APIError.self, from: data))?.error
+                    ?? "Server returned status \(http.statusCode)"
+                throw APIServiceError.serverError(msg)
+            }
+            struct SecurityQuestionResponse: Codable { let securityQuestion: String }
+            return try decoder.decode(SecurityQuestionResponse.self, from: data).securityQuestion
+        } catch let e as APIServiceError { throw e }
+        catch let e as DecodingError { throw APIServiceError.decodingError(e) }
+        catch { throw APIServiceError.networkError(error) }
+    }
+
+    /// Step 2 of password recovery — verify the security answer and set a new password.
+    func resetPassword(email: String, securityAnswer: String, newPassword: String) async throws {
+        guard let url = URL(string: "\(baseURL)/api/auth/reset-password") else {
+            throw APIServiceError.invalidURL
+        }
+        struct ResetPasswordRequest: Codable {
+            let email: String
+            let securityAnswer: String
+            let newPassword: String
+        }
+        let body = try encoder.encode(ResetPasswordRequest(
+            email: email, securityAnswer: securityAnswer, newPassword: newPassword
+        ))
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = body
+
+        do {
+            let (data, response) = try await session.data(for: request)
+            guard let http = response as? HTTPURLResponse else { throw APIServiceError.unknownError }
+            if http.statusCode != 200 {
+                let msg = (try? decoder.decode(APIError.self, from: data))?.error
+                    ?? "Server returned status \(http.statusCode)"
+                throw APIServiceError.serverError(msg)
+            }
         } catch let e as APIServiceError { throw e }
         catch let e as DecodingError { throw APIServiceError.decodingError(e) }
         catch { throw APIServiceError.networkError(error) }

@@ -431,6 +431,7 @@ struct EventsTab: View {
             .sheet(isPresented: $showFilters) { FilterView() }
             .onAppear {
                 updateGreeting()
+                eventManager.setCurrentUser(authManager.currentUser?.email)
                 eventManager.refresh()
                 withAnimation(.easeInOut(duration: 5).repeatForever(autoreverses: true)) {
                     waveOffset = .pi * 2

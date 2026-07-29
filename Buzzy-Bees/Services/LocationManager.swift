@@ -13,6 +13,16 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
     var userLocation: CLLocation?
     var authorizationStatus: CLAuthorizationStatus = .notDetermined
 
+    var isAuthorized: Bool {
+        authorizationStatus == .authorizedWhenInUse || authorizationStatus == .authorizedAlways
+    }
+
+    /// True until the user has made a first choice — safe to call `requestPermission()` again.
+    var needsPermissionRequest: Bool { authorizationStatus == .notDetermined }
+
+    /// True once the user has said no — the system won't re-prompt, only Settings can fix it.
+    var isPermissionDenied: Bool { authorizationStatus == .denied || authorizationStatus == .restricted }
+
     override init() {
         super.init()
         manager.delegate = self

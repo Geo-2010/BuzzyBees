@@ -93,6 +93,29 @@ class NotificationManager {
         showPermissionPrompt = false
     }
 
+    /// Current system authorization status, for display in Settings/Profile.
+    func currentAuthorizationStatus() async -> UNAuthorizationStatus {
+        await center.notificationSettings().authorizationStatus
+    }
+
+    /// Explicit, user-initiated enable action (e.g. tapped from Profile).
+    /// Unlike `promptIfNeeded`, this always runs regardless of `promptCount` —
+    /// the 3-prompt cap only throttles the *unsolicited* soft-ask, it should
+    /// never block a user who deliberately asks to turn notifications on.
+    func requestPermissionExplicitly() async {
+        let settings = await center.notificationSettings()
+        switch settings.authorizationStatus {
+        case .notDetermined:
+            _ = try? await center.requestAuthorization(options: [.alert, .sound, .badge])
+        case .denied:
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                await UIApplication.shared.open(url)
+            }
+        default:
+            break
+        }
+    }
+
     /// Schedule reminders for an event
     func scheduleReminders(for eventId: UUID, eventTitle: String, eventDate: Date, reminders: Set<ReminderOption>) {
         // Cancel existing reminders for this event first

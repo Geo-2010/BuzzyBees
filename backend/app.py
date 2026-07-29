@@ -5,8 +5,8 @@ A REST API for managing community events with JWT authentication.
 
 # ── DEPLOYMENT CHECKLIST ───────────────────────────────────────────────────────
 # 1. HTTPS: Run behind a reverse proxy with TLS (nginx/caddy).
-#    Never expose this HTTP server directly. Example Caddy config:
-#      your-domain.com { reverse_proxy localhost:5001 }
+#    Never expose this HTTP server directly. See backend/Caddyfile for a
+#    ready-to-run config once your domain's DNS points at this server.
 #    Then update baseURL in APIService.swift to "https://your-domain.com"
 #
 # 2. JWT SECRET: Set JWT_SECRET_KEY environment variable before starting.
@@ -28,6 +28,7 @@ from datetime import datetime, timezone, timedelta
 from dateutil import parser as date_parser
 import uuid
 import os
+import json
 import bcrypt
 import logging
 
@@ -101,6 +102,13 @@ class User(db.Model):
     plus_ones_remaining = db.Column(db.Integer, default=3)
     plus_ones_reset_date = db.Column(db.DateTime, nullable=True)
 
+    # Password recovery: a user-authored security question + one or more
+    # acceptable answer variants (each hashed independently, same as the
+    # password), so someone who forgot the exact wording/format they used
+    # (e.g. "three" vs "3" vs "3.0") can still get in.
+    security_question = db.Column(db.String(200), nullable=True)
+    security_answer_hashes = db.Column(db.Text, default='[]')
+
     def set_password(self, password: str):
         self.password_hash = bcrypt.hashpw(
             password.encode('utf-8'), bcrypt.gensalt()
@@ -111,6 +119,25 @@ class User(db.Model):
             password.encode('utf-8'),
             self.password_hash.encode('utf-8')
         )
+
+    def set_security_answers(self, answers):
+        """Hash each accepted answer variant independently (case/whitespace-insensitive)."""
+        hashes = []
+        for answer in answers:
+            normalized = answer.strip().lower()
+            if normalized:
+                hashes.append(
+                    bcrypt.hashpw(normalized.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                )
+        self.security_answer_hashes = json.dumps(hashes)
+
+    def check_security_answer(self, answer: str) -> bool:
+        try:
+            hashes = json.loads(self.security_answer_hashes or '[]')
+        except Exception:
+            hashes = []
+        normalized = answer.strip().lower().encode('utf-8')
+        return any(bcrypt.checkpw(normalized, h.encode('utf-8')) for h in hashes)
 
 
 class Event(db.Model):
@@ -156,10 +183,10 @@ class Event(db.Model):
 
     def to_dict(self, requester=None):
         """Convert event to dictionary for JSON response."""
-        attendee_list = [a.strip() for a in (self.attendees or '').split(',') if a.strip()]
-        waitlist_list = [w.strip() for w in (self.waitlist or '').split(',') if w.strip()]
-        en_route_list = [u.strip() for u in (self.en_route_users or '').split(',') if u.strip()]
-        arrived_list = [u.strip() for u in (self.arrived_users or '').split(',') if u.strip()]
+        attendee_list = _csv_list(self.attendees)
+        waitlist_list = _csv_list(self.waitlist)
+        en_route_list = _csv_list(self.en_route_users)
+        arrived_list = _csv_list(self.arrived_users)
 
         # Parse JSON fields safely
         import json as _json
@@ -250,7 +277,7 @@ class Event(db.Model):
 
         attendees = data.get('attendees', [])
         if isinstance(attendees, list):
-            attendees = ','.join(attendees)
+            attendees = _csv_join(attendees)
 
         date_value = data.get('date')
         if isinstance(date_value, str):
@@ -296,6 +323,21 @@ def _parse_ts(ts_str):
         return dt
     except Exception:
         return None
+
+
+# ── Helper: comma-separated email list columns (attendees, waitlist, en_route, arrived) ──
+# These columns store lists as CSV text rather than a join table. Centralizing the
+# encode/decode here means a future move to a proper Attendance table only requires
+# changing these two functions instead of every route that touches a list column.
+
+def _csv_list(text):
+    """Decode a CSV column into a list, stripping blanks."""
+    return [item.strip() for item in (text or '').split(',') if item.strip()]
+
+
+def _csv_join(items):
+    """Encode a list back into a CSV column."""
+    return ','.join(items)
 
 
 # Create tables and run lightweight migrations
@@ -344,6 +386,8 @@ with app.app_context():
         new_user_cols = [
             ("plus_ones_remaining", "INTEGER DEFAULT 3"),
             ("plus_ones_reset_date", "DATETIME"),
+            ("security_question", "VARCHAR(200)"),
+            ("security_answer_hashes", "TEXT DEFAULT '[]'"),
         ]
         for col_name, col_def in new_user_cols:
             try:
@@ -375,7 +419,7 @@ def register():
     if not data:
         return jsonify({'error': 'No data provided'}), 400
 
-    required = ['email', 'password', 'displayName']
+    required = ['email', 'password', 'displayName', 'securityQuestion']
     missing = [f for f in required if not str(data.get(f, '')).strip()]
     if missing:
         return jsonify({'error': f'Missing required fields: {", ".join(missing)}'}), 400
@@ -383,6 +427,8 @@ def register():
     email = data.get('email', '').lower().strip()
     password = data['password']
     display_name = data['displayName'].strip()
+    security_question = data['securityQuestion'].strip()
+    security_answers = data.get('securityAnswers', [])
 
     if '@' not in email or '.' not in email.split('@')[-1]:
         return jsonify({'error': 'Invalid email address'}), 400
@@ -393,11 +439,25 @@ def register():
     if len(display_name) < 2:
         return jsonify({'error': 'Display name must be at least 2 characters'}), 400
 
+    if len(security_question) < 3 or len(security_question) > 200:
+        return jsonify({'error': 'Security question must be 3-200 characters'}), 400
+
+    if not isinstance(security_answers, list):
+        return jsonify({'error': 'Security answers must be a list'}), 400
+    cleaned_answers = [a.strip() for a in security_answers if isinstance(a, str) and a.strip()]
+    if not cleaned_answers:
+        return jsonify({'error': 'At least one security answer is required'}), 400
+    if len(cleaned_answers) > 5:
+        return jsonify({'error': 'Provide at most 5 security answer variants'}), 400
+    if any(len(a) > 100 for a in cleaned_answers):
+        return jsonify({'error': 'Each security answer must be 100 characters or less'}), 400
+
     if User.query.filter_by(email=email).first():
         return jsonify({'error': 'An account with this email already exists'}), 409
 
-    user = User(email=email, display_name=display_name)
+    user = User(email=email, display_name=display_name, security_question=security_question)
     user.set_password(password)
+    user.set_security_answers(cleaned_answers)
 
     try:
         db.session.add(user)
@@ -434,6 +494,56 @@ def login():
     return jsonify({'token': token, 'displayName': user.display_name})
 
 
+@app.route('/api/auth/security-question', methods=['GET'])
+@limiter.limit("10 per minute")
+def get_security_question():
+    """Look up the security question for an email, as step 1 of password reset."""
+    email = request.args.get('email', '').strip().lower()
+    if not email:
+        return jsonify({'error': 'Email is required'}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user or not user.security_question:
+        return jsonify({'error': 'No account found with that email'}), 404
+
+    return jsonify({'securityQuestion': user.security_question})
+
+
+@app.route('/api/auth/reset-password', methods=['POST'])
+@limiter.limit("5 per minute")
+def reset_password():
+    """Reset a password after verifying the answer to the account's security question."""
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    email = data.get('email', '').strip().lower()
+    answer = data.get('securityAnswer', '')
+    new_password = data.get('newPassword', '')
+
+    if not email or not answer or not new_password:
+        return jsonify({'error': 'Email, security answer, and new password are required'}), 400
+    if len(new_password) < 6:
+        return jsonify({'error': 'Password must be at least 6 characters'}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user or not user.security_question:
+        return jsonify({'error': 'No account found with that email'}), 404
+
+    if not user.check_security_answer(answer):
+        return jsonify({'error': 'That answer does not match our records'}), 401
+
+    try:
+        user.set_password(new_password)
+        db.session.commit()
+        logger.info(f"Password reset via security question for {email}")
+        return jsonify({'message': 'Password reset successful'})
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Failed to reset password for {email}: {e}")
+        return jsonify({'error': 'Failed to reset password'}), 500
+
+
 # ── Event Routes ───────────────────────────────────────────────────────────────
 
 @app.route('/api/health', methods=['GET'])
@@ -462,7 +572,7 @@ def get_events():
         Event.swarm_deadline < datetime.now(timezone.utc),
     ).all()
     for ev in swarm_evaporated:
-        attendee_list = [a.strip() for a in (ev.attendees or '').split(',') if a.strip()]
+        attendee_list = _csv_list(ev.attendees)
         if len(attendee_list) < (ev.swarm_min_attendees or 1):
             db.session.delete(ev)
 
@@ -652,7 +762,7 @@ def update_event(event_id):
         if 'attendees' in data:
             attendees = data['attendees']
             if isinstance(attendees, list):
-                attendees = ','.join(attendees)
+                attendees = _csv_join(attendees)
             event.attendees = attendees
         if 'latitude' in data:
             event.latitude = data['latitude']
@@ -719,8 +829,8 @@ def toggle_rsvp(event_id):
     if not event:
         return jsonify({'error': 'Event not found'}), 404
 
-    attendee_list = [a.strip() for a in (event.attendees or '').split(',') if a.strip()]
-    waitlist = [w.strip() for w in (event.waitlist or '').split(',') if w.strip()]
+    attendee_list = _csv_list(event.attendees)
+    waitlist = _csv_list(event.waitlist)
 
     if current_user in attendee_list:
         attendee_list.remove(current_user)
@@ -729,12 +839,12 @@ def toggle_rsvp(event_id):
         if waitlist and (event.capacity is None or len(attendee_list) < event.capacity):
             promoted = waitlist.pop(0)
             attendee_list.append(promoted)
-            event.waitlist = ','.join(waitlist)
+            event.waitlist = _csv_join(waitlist)
             logger.info(f"Promoted {promoted} from waitlist for event {event_id}")
     elif current_user in waitlist:
         # Already on waitlist — remove (toggle off)
         waitlist.remove(current_user)
-        event.waitlist = ','.join(waitlist)
+        event.waitlist = _csv_join(waitlist)
         action = 'waitlist_removed'
     else:
         if event.capacity and len(attendee_list) >= event.capacity:
@@ -742,7 +852,7 @@ def toggle_rsvp(event_id):
         attendee_list.append(current_user)
         action = 'added'
 
-    event.attendees = ','.join(attendee_list)
+    event.attendees = _csv_join(attendee_list)
 
     # Feature 3: Append timestamp to rsvp_log for momentum tracking (only on add, not remove)
     if action == 'added':
@@ -778,8 +888,8 @@ def toggle_waitlist(event_id):
     if not event:
         return jsonify({'error': 'Event not found'}), 404
 
-    attendee_list = [a.strip() for a in (event.attendees or '').split(',') if a.strip()]
-    waitlist = [w.strip() for w in (event.waitlist or '').split(',') if w.strip()]
+    attendee_list = _csv_list(event.attendees)
+    waitlist = _csv_list(event.waitlist)
 
     if current_user in attendee_list:
         return jsonify({'error': 'You are already attending this event'}), 400
@@ -795,7 +905,7 @@ def toggle_waitlist(event_id):
         waitlist.append(current_user)
         on_waitlist = True
 
-    event.waitlist = ','.join(waitlist)
+    event.waitlist = _csv_join(waitlist)
 
     try:
         db.session.commit()
@@ -859,8 +969,8 @@ def update_travel_status(event_id):
     if status not in ('en_route', 'arrived', 'none'):
         return jsonify({'error': 'status must be en_route, arrived, or none'}), 400
 
-    en_route = [u.strip() for u in (event.en_route_users or '').split(',') if u.strip()]
-    arrived = [u.strip() for u in (event.arrived_users or '').split(',') if u.strip()]
+    en_route = _csv_list(event.en_route_users)
+    arrived = _csv_list(event.arrived_users)
 
     # Remove from both lists first
     en_route = [u for u in en_route if u != current_user]
@@ -871,8 +981,8 @@ def update_travel_status(event_id):
     elif status == 'arrived':
         arrived.append(current_user)
 
-    event.en_route_users = ','.join(en_route)
-    event.arrived_users = ','.join(arrived)
+    event.en_route_users = _csv_join(en_route)
+    event.arrived_users = _csv_join(arrived)
 
     try:
         db.session.commit()
@@ -905,7 +1015,7 @@ def post_echo(event_id):
     if datetime.now(timezone.utc) > echo_deadline:
         return jsonify({'error': 'Echo window has closed (48 hours after event)'}), 400
 
-    attendee_list = [a.strip() for a in (event.attendees or '').split(',') if a.strip()]
+    attendee_list = _csv_list(event.attendees)
     if current_user not in attendee_list:
         return jsonify({'error': 'Only attendees can leave echoes'}), 403
 
@@ -950,7 +1060,7 @@ def add_plus_one(event_id):
     if not event:
         return jsonify({'error': 'Event not found'}), 404
 
-    attendee_list = [a.strip() for a in (event.attendees or '').split(',') if a.strip()]
+    attendee_list = _csv_list(event.attendees)
     if current_user not in attendee_list:
         return jsonify({'error': 'You must be attending to bring a guest'}), 403
 

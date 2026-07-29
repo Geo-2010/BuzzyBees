@@ -36,14 +36,6 @@ class AuthManager {
 
     // MARK: - User lookup helpers
 
-    func isExistingUser(email: String) -> Bool {
-        userDirectory[email.lowercased()] != nil
-    }
-
-    func storedDisplayName(for email: String) -> String? {
-        userDirectory[email.lowercased()]
-    }
-
     func shortName(for email: String) -> String {
         if let displayName = userDirectory[email.lowercased()] {
             let parts = displayName.split(separator: " ")
@@ -59,9 +51,14 @@ class AuthManager {
     }
 
     // MARK: - Login / Registration
+    //
+    // Sign In and Sign Up are separate, explicit actions (rather than one form
+    // that guesses which the user means) — a guess based on locally-cached
+    // state gets out of sync with the server easily and produces confusing
+    // "you already have an account" / "account not found" mismatches.
 
     /// Attempts server auth first, falls back to local Keychain auth if unreachable.
-    func login(email: String, password: String, displayName: String) async -> Bool {
+    func signIn(email: String, password: String) async -> Bool {
         isLoading = true
         authError = nil
         defer { isLoading = false }
@@ -72,41 +69,124 @@ class AuthManager {
         }
 
         let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        let isExisting = userDirectory[trimmedEmail] != nil
 
-        if isExisting {
-            // Existing user — try server login, fall back to local if unreachable
-            do {
-                let response = try await APIService.shared.login(email: trimmedEmail, password: password)
-                return completeLogin(email: trimmedEmail, password: password, displayName: response.displayName, token: response.token)
-            } catch APIServiceError.serverError(let msg) {
-                authError = msg
-                return false
-            } catch {
-                // Server unreachable — fall back to local Keychain auth
-                return localLogin(email: trimmedEmail, password: password)
-            }
-        } else {
-            // New user — require display name, register on server
-            let trimmedName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !trimmedName.isEmpty else {
-                authError = "Display name is required for new accounts"
-                return false
-            }
-            do {
-                let response = try await APIService.shared.register(
-                    email: trimmedEmail,
-                    password: password,
-                    displayName: trimmedName
-                )
-                return completeLogin(email: trimmedEmail, password: password, displayName: response.displayName, token: response.token)
-            } catch APIServiceError.serverError(let msg) {
-                authError = msg
-                return false
-            } catch {
-                authError = "Registration failed. Please check your connection and try again."
-                return false
-            }
+        do {
+            let response = try await APIService.shared.login(email: trimmedEmail, password: password)
+            return completeLogin(email: trimmedEmail, password: password, displayName: response.displayName, token: response.token)
+        } catch APIServiceError.serverError(let msg) {
+            authError = msg
+            return false
+        } catch {
+            // Server unreachable — fall back to local Keychain auth
+            return localLogin(email: trimmedEmail, password: password)
+        }
+    }
+
+    /// Registers a new account. A security question + at least one answer variant
+    /// are required up front so the account can be recovered later without email.
+    func signUp(
+        email: String,
+        password: String,
+        displayName: String,
+        securityQuestion: String,
+        securityAnswers: [String]
+    ) async -> Bool {
+        isLoading = true
+        authError = nil
+        defer { isLoading = false }
+
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let trimmedName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedQuestion = securityQuestion.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanedAnswers = securityAnswers
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+
+        guard !trimmedEmail.isEmpty, !password.isEmpty else {
+            authError = "Email and password are required"
+            return false
+        }
+        guard !trimmedName.isEmpty else {
+            authError = "Display name is required"
+            return false
+        }
+        guard !trimmedQuestion.isEmpty else {
+            authError = "A security question is required"
+            return false
+        }
+        guard !cleanedAnswers.isEmpty else {
+            authError = "At least one security answer is required"
+            return false
+        }
+
+        do {
+            let response = try await APIService.shared.register(
+                email: trimmedEmail,
+                password: password,
+                displayName: trimmedName,
+                securityQuestion: trimmedQuestion,
+                securityAnswers: cleanedAnswers
+            )
+            return completeLogin(email: trimmedEmail, password: password, displayName: response.displayName, token: response.token)
+        } catch APIServiceError.serverError(let msg) {
+            authError = msg
+            return false
+        } catch {
+            authError = "Registration failed. Please check your connection and try again."
+            return false
+        }
+    }
+
+    // MARK: - Forgot Password
+
+    /// Step 1: look up the security question for an email. Returns nil (with
+    /// `authError` set) if there's no account or the server is unreachable.
+    func fetchSecurityQuestion(email: String) async -> String? {
+        isLoading = true
+        authError = nil
+        defer { isLoading = false }
+
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !trimmedEmail.isEmpty else {
+            authError = "Enter your email first"
+            return nil
+        }
+
+        do {
+            return try await APIService.shared.getSecurityQuestion(email: trimmedEmail)
+        } catch APIServiceError.serverError(let msg) {
+            authError = msg
+            return nil
+        } catch {
+            authError = "Couldn't reach the server. Check your connection."
+            return nil
+        }
+    }
+
+    /// Step 2: verify the security answer and set a new password.
+    func resetPassword(email: String, securityAnswer: String, newPassword: String) async -> Bool {
+        isLoading = true
+        authError = nil
+        defer { isLoading = false }
+
+        guard newPassword.count >= 6 else {
+            authError = "Password must be at least 6 characters"
+            return false
+        }
+
+        do {
+            try await APIService.shared.resetPassword(
+                email: email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
+                securityAnswer: securityAnswer,
+                newPassword: newPassword
+            )
+            return true
+        } catch APIServiceError.serverError(let msg) {
+            authError = msg
+            return false
+        } catch {
+            authError = "Couldn't reach the server. Check your connection."
+            return false
         }
     }
 

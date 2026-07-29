@@ -43,8 +43,8 @@ struct OnboardingView: View {
                 OnboardingPageView(
                     icon: "person.2.fill",
                     emojiIcon: nil,
-                    title: "Built for Purdue",
-                    subtitle: "Connect with students and locals around West Lafayette. Use your @purdue.edu email to join.",
+                    title: "Join the Community",
+                    subtitle: "Connect with students and locals around West Lafayette. Sign up with any email to get started.",
                     pills: [],
                     showGetStarted: true,
                     onComplete: onComplete
