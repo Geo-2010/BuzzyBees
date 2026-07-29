@@ -1,6 +1,6 @@
 //
 //  Theme.swift
-//  Rural-Activities
+//  Buzzy-Bees
 //
 
 import SwiftUI

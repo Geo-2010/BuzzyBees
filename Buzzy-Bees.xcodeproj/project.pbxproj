@@ -33,6 +33,7 @@
 		5FA3940C2F27CBDB00DE1001 /* MapTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA3940C2F27CBDB00DE107C /* MapTabView.swift */; };
 		5FA3940D2F27CBDB00DE1001 /* SkeletonCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA3940D2F27CBDB00DE107C /* SkeletonCardView.swift */; };
 		5FA3940E2F27CBDB00DE1001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA3940E2F27CBDB00DE107C /* OnboardingView.swift */; };
+		5FA3940F2F27CBDB00DE1001 /* ServerConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA3940F2F27CBDB00DE107C /* ServerConfig.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -63,6 +64,7 @@
 		5FA3940C2F27CBDB00DE107C /* MapTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapTabView.swift; sourceTree = "<group>"; };
 		5FA3940D2F27CBDB00DE107C /* SkeletonCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkeletonCardView.swift; sourceTree = "<group>"; };
 		5FA3940E2F27CBDB00DE107C /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		5FA3940F2F27CBDB00DE107C /* ServerConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerConfig.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,6 +111,7 @@
 				5FA394062F27CBDB00DE107C /* KeychainService.swift */,
 				5FA394072F27CBDB00DE107C /* LocationManager.swift */,
 				5FA394082F27CBDB00DE107C /* NotificationManager.swift */,
+				5FA3940F2F27CBDB00DE107C /* ServerConfig.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -254,6 +257,7 @@
 				5FA3940C2F27CBDB00DE1001 /* MapTabView.swift in Sources */,
 				5FA3940D2F27CBDB00DE1001 /* SkeletonCardView.swift in Sources */,
 				5FA3940E2F27CBDB00DE1001 /* OnboardingView.swift in Sources */,
+				5FA3940F2F27CBDB00DE1001 /* ServerConfig.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

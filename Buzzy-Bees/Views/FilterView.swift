@@ -1,6 +1,6 @@
 //
 //  FilterView.swift
-//  Rural-Activities
+//  Buzzy-Bees
 //
 
 import SwiftUI

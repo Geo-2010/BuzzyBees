@@ -129,11 +129,15 @@ class AuthManager {
             )
             return completeLogin(email: trimmedEmail, password: password, displayName: response.displayName, token: response.token)
         } catch APIServiceError.serverError(let msg) {
+            // Server reachable but rejected the request (bad input, duplicate email, etc.) — a real error.
             authError = msg
             return false
         } catch {
-            authError = "Registration failed. Please check your connection and try again."
-            return false
+            // Server unreachable — create a local-only account so the app is still usable.
+            // Nothing here syncs anywhere: no events from other people will show up, and
+            // this account only exists on this device until it's created for real once
+            // the server is back up.
+            return completeLogin(email: trimmedEmail, password: password, displayName: trimmedName, token: nil)
         }
     }
 

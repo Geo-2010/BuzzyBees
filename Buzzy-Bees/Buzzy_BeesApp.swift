@@ -2,8 +2,6 @@
 //  Buzzy_BeesApp.swift
 //  Buzzy-Bees
 //
-//  Created by Geo Culurciello on 1/19/26.
-//
 
 import SwiftUI
 

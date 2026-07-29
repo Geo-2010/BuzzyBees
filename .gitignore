@@ -4,3 +4,11 @@ backend/events.db
 backend/.jwt_secret
 backend/__pycache__/
 backend/venv/
+
+# Real server address — never commit. See ServerConfig.example.swift for the template.
+Buzzy-Bees/Services/ServerConfig.swift
+
+# Xcode per-developer local state — embeds your system username in the path,
+# and is just IDE window/scheme state, never meant to be shared or committed.
+xcuserdata/
+*.xcuserstate

@@ -20,7 +20,7 @@ struct OnboardingView: View {
                     icon: nil,
                     emojiIcon: "🐝",
                     title: "Welcome to BuzzyBees",
-                    subtitle: "Discover events happening around Purdue and West Lafayette",
+                    subtitle: "Discover events happening in your community",
                     pills: [],
                     showGetStarted: false,
                     onComplete: onComplete
@@ -44,7 +44,7 @@ struct OnboardingView: View {
                     icon: "person.2.fill",
                     emojiIcon: nil,
                     title: "Join the Community",
-                    subtitle: "Connect with students and locals around West Lafayette. Sign up with any email to get started.",
+                    subtitle: "Connect with people nearby. Sign up with any email to get started.",
                     pills: [],
                     showGetStarted: true,
                     onComplete: onComplete

@@ -1,8 +1,6 @@
 //
 //  ContentView.swift
-//  Rural-Activities
-//
-//  Created by Geo Culurciello on 1/19/26.
+//  Buzzy-Bees
 //
 
 import SwiftUI

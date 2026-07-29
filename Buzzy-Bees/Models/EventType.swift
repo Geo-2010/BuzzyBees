@@ -1,6 +1,6 @@
 //
 //  EventType.swift
-//  Rural-Activities
+//  Buzzy-Bees
 //
 
 import Foundation

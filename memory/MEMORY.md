@@ -2,7 +2,9 @@
 
 ## Project Overview
 iOS event discovery app (Swift/SwiftUI) + Python/Flask backend.
-- Backend: `backend/app.py`, SQLite DB, port 5001, IP `195.252.199.12`
+- Backend: `backend/app.py`, SQLite DB, port 5001. Real server address lives in
+  `Buzzy-Bees/Services/ServerConfig.swift` (gitignored — never put the real
+  address in a tracked file; see `ServerConfig.example.swift` for the template)
 - iOS: `Buzzy-Bees/` directory, uses `@Observable` (not ObservableObject)
 
 ## Architecture

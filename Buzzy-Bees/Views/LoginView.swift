@@ -1,6 +1,6 @@
 //
 //  LoginView.swift
-//  Rural-Activities
+//  Buzzy-Bees
 //
 
 import SwiftUI

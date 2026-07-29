@@ -222,10 +222,13 @@ class APIService {
     // MARK: - Configuration
     // NOTE: Switch to HTTPS before going to production.
     // Step 1: Set up a reverse proxy (nginx or Caddy) with a TLS cert on your server.
-    // Step 2: Change the baseURL below to "https://your-domain.com"
+    // Step 2: Change the baseURL in ServerConfig.swift to "https://your-domain.com"
     // Step 3: Remove or block direct HTTP access on port 5001.
     // See the DEPLOYMENT CHECKLIST comment at the top of backend/app.py for details.
-    private let baseURL = "http://195.252.199.12:5001"
+    //
+    // The real server address lives in ServerConfig.swift, which is gitignored —
+    // see ServerConfig.example.swift for the template new clones need to fill in.
+    private let baseURL = ServerConfig.baseURL
 
     var authToken: String?
 
