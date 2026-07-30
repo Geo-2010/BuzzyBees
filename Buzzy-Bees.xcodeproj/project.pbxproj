@@ -20,6 +20,7 @@
 		5FA393FD2F27CBDB00DE1001 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA393FD2F27CBDB00DE107C /* LoginView.swift */; };
 		5FA393FE2F27CBDB00DE1001 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA393FE2F27CBDB00DE107C /* MainView.swift */; };
 		5FA394002F27CBDB00DE1001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5FA394002F27CBDB00DE107C /* Assets.xcassets */; };
+		5FA394102F27CBDB00DE1001 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5FA394102F27CBDB00DE107C /* PrivacyInfo.xcprivacy */; };
 		5FA394012F27CBDB00DE1001 /* ContentFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA394012F27CBDB00DE107C /* ContentFilter.swift */; };
 		5FA394022F27CBDB00DE1001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA394022F27CBDB00DE107C /* ContentView.swift */; };
 		5FA394032F27CBDB00DE1001 /* Buzzy_BeesApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA394032F27CBDB00DE107C /* Buzzy_BeesApp.swift */; };
@@ -65,6 +66,7 @@
 		5FA3940D2F27CBDB00DE107C /* SkeletonCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkeletonCardView.swift; sourceTree = "<group>"; };
 		5FA3940E2F27CBDB00DE107C /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		5FA3940F2F27CBDB00DE107C /* ServerConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerConfig.swift; sourceTree = "<group>"; };
+		5FA394102F27CBDB00DE107C /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -156,6 +158,7 @@
 				5FA394022F27CBDB00DE107C /* ContentView.swift */,
 				5FA394032F27CBDB00DE107C /* Buzzy_BeesApp.swift */,
 				5FA394042F27CBDB00DE107C /* Theme.swift */,
+				5FA394102F27CBDB00DE107C /* PrivacyInfo.xcprivacy */,
 			);
 			path = "Buzzy-Bees";
 			sourceTree = "<group>";
@@ -222,6 +225,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5FA394002F27CBDB00DE1001 /* Assets.xcassets in Resources */,
+				5FA394102F27CBDB00DE1001 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

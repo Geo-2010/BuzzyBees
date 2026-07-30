@@ -320,6 +320,27 @@ class APIService {
         catch { throw APIServiceError.networkError(error) }
     }
 
+    /// Permanently deletes the authenticated user's account and all associated data server-side.
+    func deleteAccount() async throws {
+        guard let url = URL(string: "\(baseURL)/api/auth/account") else {
+            throw APIServiceError.invalidURL
+        }
+        let request = authenticatedRequest(url: url, method: "DELETE")
+
+        do {
+            let (data, response) = try await session.data(for: request)
+            guard let http = response as? HTTPURLResponse else { throw APIServiceError.unknownError }
+            if http.statusCode == 401 { handleUnauthorized(); throw APIServiceError.unauthorized }
+            if http.statusCode != 200 {
+                let msg = (try? decoder.decode(APIError.self, from: data))?.error
+                    ?? "Server returned status \(http.statusCode)"
+                throw APIServiceError.serverError(msg)
+            }
+        } catch let e as APIServiceError { throw e }
+        catch let e as DecodingError { throw APIServiceError.decodingError(e) }
+        catch { throw APIServiceError.networkError(error) }
+    }
+
     func register(
         email: String,
         password: String,

@@ -952,6 +952,80 @@ def update_profile():
         return jsonify({'error': 'Failed to update profile'}), 500
 
 
+@app.route('/api/auth/account', methods=['DELETE'])
+@jwt_required()
+@limiter.limit("5 per minute")
+def delete_account():
+    """Permanently delete the authenticated user's account and all associated data."""
+    current_user = get_jwt_identity()
+
+    user = User.query.filter_by(email=current_user).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    try:
+        # Remove every trace of this user from other people's events.
+        for event in Event.query.all():
+            changed = False
+
+            attendees = _csv_list(event.attendees)
+            if current_user in attendees:
+                attendees.remove(current_user)
+                event.attendees = _csv_join(attendees)
+                changed = True
+
+            waitlist = _csv_list(event.waitlist)
+            if current_user in waitlist:
+                waitlist.remove(current_user)
+                event.waitlist = _csv_join(waitlist)
+                changed = True
+
+            en_route = _csv_list(event.en_route_users)
+            if current_user in en_route:
+                en_route.remove(current_user)
+                event.en_route_users = _csv_join(en_route)
+                changed = True
+
+            arrived = _csv_list(event.arrived_users)
+            if current_user in arrived:
+                arrived.remove(current_user)
+                event.arrived_users = _csv_join(arrived)
+                changed = True
+
+            try:
+                echoes = json.loads(event.echoes or '[]')
+            except Exception:
+                echoes = []
+            filtered_echoes = [e for e in echoes if e.get('email') != current_user]
+            if len(filtered_echoes) != len(echoes):
+                event.echoes = json.dumps(filtered_echoes)
+                changed = True
+
+            try:
+                guests = json.loads(event.plus_one_guests or '[]')
+            except Exception:
+                guests = []
+            filtered_guests = [g for g in guests if g.get('inviterEmail') != current_user]
+            if len(filtered_guests) != len(guests):
+                event.plus_one_guests = json.dumps(filtered_guests)
+                changed = True
+
+            if changed:
+                db.session.add(event)
+
+        # Delete events this user created.
+        Event.query.filter_by(user_id=current_user).delete()
+
+        db.session.delete(user)
+        db.session.commit()
+        logger.info(f"Account deleted: {current_user}")
+        return jsonify({'message': 'Account deleted'})
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Failed to delete account {current_user}: {e}")
+        return jsonify({'error': 'Failed to delete account'}), 500
+
+
 # ── Feature 4: En Route Status ─────────────────────────────────────────────────
 
 @app.route('/api/events/<event_id>/status', methods=['POST'])

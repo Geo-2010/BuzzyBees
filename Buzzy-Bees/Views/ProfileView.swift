@@ -15,6 +15,8 @@ struct ProfileView: View {
     @State private var isSaving = false
     @State private var showError = false
     @State private var showLogoutConfirm = false
+    @State private var showDeleteAccountConfirm = false
+    @State private var isDeletingAccount = false
     @State private var avatarGlow = false
     @State private var notificationStatus: UNAuthorizationStatus = .notDetermined
 
@@ -219,6 +221,16 @@ struct ProfileView: View {
                             .background(RoundedRectangle(cornerRadius: 14).fill(Color.red.opacity(0.08)).overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.red.opacity(0.3), lineWidth: 1)))
                         }
                         .padding(.horizontal)
+
+                        // Delete Account — a separate, less prominent action from Sign Out
+                        // since it's permanent and irreversible.
+                        Button(action: { showDeleteAccountConfirm = true }) {
+                            Text(isDeletingAccount ? "Deleting…" : "Delete Account")
+                                .font(.footnote)
+                                .foregroundStyle(.red.opacity(0.5))
+                        }
+                        .disabled(isDeletingAccount)
+                        .padding(.top, 4)
                         .padding(.bottom, 32)
                     }
                 }
@@ -236,6 +248,12 @@ struct ProfileView: View {
                 Button("Cancel", role: .cancel) { }
             } message: {
                 Text("You'll need to sign in again to access your events.")
+            }
+            .alert("Delete Account?", isPresented: $showDeleteAccountConfirm) {
+                Button("Delete Permanently", role: .destructive) { deleteAccount() }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("This permanently deletes your account and everything tied to it — events you created, and your RSVPs on other events. This can't be undone.")
             }
         }
         .preferredColorScheme(.dark)
@@ -259,6 +277,19 @@ struct ProfileView: View {
                 if success {
                     isEditingName = false
                 } else {
+                    showError = true
+                }
+            }
+        }
+    }
+
+    private func deleteAccount() {
+        isDeletingAccount = true
+        Task {
+            let success = await authManager.deleteAccount()
+            await MainActor.run {
+                isDeletingAccount = false
+                if !success {
                     showError = true
                 }
             }

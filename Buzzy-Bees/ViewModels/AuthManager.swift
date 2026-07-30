@@ -206,6 +206,31 @@ class AuthManager {
         UserDefaults.standard.removeObject(forKey: userDefaultsKey)
     }
 
+    // MARK: - Account Deletion
+
+    /// Permanently deletes the account server-side, then signs out locally.
+    func deleteAccount() async -> Bool {
+        isLoading = true
+        authError = nil
+        defer { isLoading = false }
+
+        guard let email = currentUser?.email else { return false }
+
+        do {
+            try await APIService.shared.deleteAccount()
+            userDirectory.removeValue(forKey: email)
+            saveUserDirectory()
+            logout()
+            return true
+        } catch APIServiceError.serverError(let msg) {
+            authError = msg
+            return false
+        } catch {
+            authError = "Couldn't reach the server. Check your connection."
+            return false
+        }
+    }
+
     // MARK: - Profile Update
 
     /// Update the current user's display name on the server and locally.
