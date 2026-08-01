@@ -72,6 +72,18 @@ class EventManager {
         currentUserId = userId
     }
 
+    /// Wipes the local event cache and identity. Must be called on every sign-out
+    /// (and especially account deletion) — otherwise a *different* account signing
+    /// in on this same device would inherit the previous user's cached events, and
+    /// the sync merge in `fetchEventsFromServer` would re-upload any of them the
+    /// server doesn't recognize anymore, silently attributing them to the new account.
+    func clearLocalCache() {
+        events = []
+        knownEventIds = []
+        currentUserId = nil
+        try? FileManager.default.removeItem(at: storageURL)
+    }
+
     // Network path monitor for real-time connectivity
     private var networkMonitor: NWPathMonitor?
     private let monitorQueue = DispatchQueue(label: "com.buzzybees.network.monitor")

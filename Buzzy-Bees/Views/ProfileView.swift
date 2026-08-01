@@ -244,7 +244,10 @@ struct ProfileView: View {
                 Text(authManager.authError ?? "Something went wrong.")
             }
             .alert("Sign Out?", isPresented: $showLogoutConfirm) {
-                Button("Sign Out", role: .destructive) { authManager.logout() }
+                Button("Sign Out", role: .destructive) {
+                    authManager.logout()
+                    eventManager.clearLocalCache()
+                }
                 Button("Cancel", role: .cancel) { }
             } message: {
                 Text("You'll need to sign in again to access your events.")
@@ -289,7 +292,9 @@ struct ProfileView: View {
             let success = await authManager.deleteAccount()
             await MainActor.run {
                 isDeletingAccount = false
-                if !success {
+                if success {
+                    eventManager.clearLocalCache()
+                } else {
                     showError = true
                 }
             }
