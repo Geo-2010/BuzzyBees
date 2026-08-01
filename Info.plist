@@ -49,5 +49,9 @@
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>BuzzyBees uses your location to sort events by distance so you can find nearby activities.</string>
+	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
+	<string>BuzzyBees adds events to your calendar only when you tap "Add to Calendar."</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

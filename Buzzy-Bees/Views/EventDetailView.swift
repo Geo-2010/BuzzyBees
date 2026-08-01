@@ -5,6 +5,7 @@
 
 import SwiftUI
 import UIKit
+import EventKit
 
 struct EventDetailView: View {
     let event: Event
@@ -16,6 +17,11 @@ struct EventDetailView: View {
     @State private var showConfetti = false
     @State private var showEditEvent = false
     @State private var showLocationRequiredAlert = false
+
+    // Add to Calendar
+    @State private var showCalendarAdded = false
+    @State private var showCalendarError = false
+    @State private var calendarErrorMessage = ""
 
     // Feature 4: En Route
     @State private var travelStatus: String = "none"  // "none", "en_route", "arrived"
@@ -142,6 +148,16 @@ struct EventDetailView: View {
             Button("Not Now", role: .cancel) { }
         } message: {
             Text("BuzzyBees needs your location to show event details. Please enable Location Services for BuzzyBees in Settings.")
+        }
+        .alert("Couldn't Add to Calendar", isPresented: $showCalendarError) {
+            Button("Open Settings") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(calendarErrorMessage)
         }
     }
 
@@ -291,7 +307,20 @@ struct EventDetailView: View {
 
     @ViewBuilder private var detailsSection: some View {
         DetailRow(icon: "calendar", title: "Date & Time") {
-            Text(dateFormatter.string(from: event.date)).foregroundStyle(.white.opacity(0.9))
+            VStack(alignment: .leading, spacing: 8) {
+                Text(dateFormatter.string(from: event.date)).foregroundStyle(.white.opacity(0.9))
+                Button { addToCalendar() } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: showCalendarAdded ? "checkmark.circle.fill" : "calendar.badge.plus")
+                            .font(.caption)
+                        Text(showCalendarAdded ? "Added to Calendar" : "Add to Calendar").font(.caption.bold())
+                    }
+                    .foregroundStyle(.black)
+                    .padding(.horizontal, 12).padding(.vertical, 6)
+                    .background(Capsule().fill(showCalendarAdded ? Color.green : AppTheme.gold))
+                }
+                .disabled(showCalendarAdded)
+            }
         }
         DetailRow(icon: "mappin.and.ellipse", title: "Location") {
             VStack(alignment: .leading, spacing: 8) {
@@ -519,6 +548,36 @@ struct EventDetailView: View {
             locationManager.requestPermission()
         } else if locationManager.isPermissionDenied {
             showLocationRequiredAlert = true
+        }
+    }
+
+    /// Adds this event to the user's default calendar. Uses write-only access
+    /// (iOS 17+) so BuzzyBees never sees the rest of the user's calendar.
+    private func addToCalendar() {
+        let store = EKEventStore()
+        store.requestWriteOnlyAccessToEvents { granted, error in
+            DispatchQueue.main.async {
+                guard granted, error == nil else {
+                    calendarErrorMessage = "Enable Calendar access for BuzzyBees in Settings to add events."
+                    showCalendarError = true
+                    return
+                }
+                let calEvent = EKEvent(eventStore: store)
+                calEvent.title = currentEvent.title
+                calEvent.startDate = currentEvent.date
+                calEvent.endDate = currentEvent.date.addingTimeInterval(2 * 60 * 60)
+                calEvent.location = currentEvent.location
+                calEvent.notes = currentEvent.description
+                calEvent.calendar = store.defaultCalendarForNewEvents
+                do {
+                    try store.save(calEvent, span: .thisEvent)
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    withAnimation { showCalendarAdded = true }
+                } catch {
+                    calendarErrorMessage = "Couldn't add this event to your calendar. Please try again."
+                    showCalendarError = true
+                }
+            }
         }
     }
 
